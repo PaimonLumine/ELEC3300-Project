@@ -100,28 +100,63 @@ int main(void)
 	
 	LCD_INIT();
 
-	LCD_Clear (50, 80, 140, 70, RED);
-	LCD_DrawString(68, 100, "TOUCHPAD DEMO");
-	HAL_Delay(2000);
+	//LCD_Clear (50, 80, 140, 70, RED);
+	//LCD_DrawString(68, 100, "TOUCHPAD DEMO");
+	//HAL_Delay(2000);
 
-	while( ! XPT2046_Touch_Calibrate () );   
+	while( ! XPT2046_Touch_Calibrate () );
 
 	LCD_GramScan ( 1 );
-	LCD_Clear ( 0, 0, 240, 320, GREY );
-	LCD_Clear ( 90,  230,  60, 60, BLUE	);
+
+	int backcolor = GREY;
+	HOME:
+
+	LCD_Clear ( 0, 0, 240, 320, backcolor );
+	//LCD_Clear ( 90,  230,  60, 60, BLUE	);
+
+	//LCD_Clear ( 2, 10, 50, 20, YELLOW);
+	LCD_DrawString(2, 10, "Config");
+	//LCD_Clear ( 200, 10, 50, 20, YELLOW);
+	LCD_DrawString(200, 10, "Stats");
+	//LCD_Clear ( 40, 220, 80, 60, YELLOW);
+	LCD_DrawString(40, 220, "Set");
+	LCD_DrawString(40, 240, "Exercise");
+	LCD_DrawString(40, 260, "Timer");
+	//LCD_Clear ( 140, 220, 80, 60, YELLOW);
+	LCD_DrawString(140, 220, "Drink");
+	LCD_DrawString(140, 240, "water");
+	//LCD_Clear ( 200, 260, 40, 40, YELLOW);
+	LCD_DrawString(200, 260, "Dark");
+	LCD_DrawString(200, 280, "mode");
+
+
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	
+	int status = 0;
 	
   while (1)
   {
     if ( ucXPT2046_TouchFlag == 1 )	         
     {
-			Check_touchkey();			
-      ucXPT2046_TouchFlag = 0;		            
+    	status = Check_touchkey(backcolor);
+      ucXPT2046_TouchFlag = 0;
+      if (status == 1){
+    	  goto HOME;
+      }
+      else if (status == 2){
+    	  if (backcolor == GREY){
+    		  backcolor = BLACK;
+    		  goto HOME;
+    	  }
+    	  else {
+    		  backcolor = GREY;
+    		  goto HOME;
+    	  }
+
+            }
     }					
 		HAL_Delay(50);		
 		
