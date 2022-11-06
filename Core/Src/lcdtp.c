@@ -7,13 +7,15 @@ uint16_t	LCD_Read_PixelData      ( void );
 
 
 void Delay ( __IO uint32_t nCount ){  for ( ; nCount != 0; nCount -- );}
+int darkmode_toggle = 0;
+
 
 void LCD_INIT ( void )
 {
 	LCD_BackLed_Control(ENABLE);      
 	LCD_Rst();
 	LCD_REG_Config();
-	LCD_Clear (0, 0, 240, 320, BACKGROUND);
+	LCD_Clear (0, 0, 240, 320);
 }
 
 
@@ -242,14 +244,20 @@ void LCD_FillColor ( uint32_t usPoint, uint16_t usColor )
 }
 
 
-void LCD_Clear ( uint16_t usCOLUMN, uint16_t usPAGE, uint16_t usWidth, uint16_t usHeight, uint16_t usColor )
+void LCD_Clear ( uint16_t usCOLUMN, uint16_t usPAGE, uint16_t usWidth, uint16_t usHeight)
 {
+	//Check Dark Mode Is Toggle
+	uint16_t bg_color = darkmode_toggle?BLACK:WHITE;
 	LCD_OpenWindow ( usCOLUMN, usPAGE, usWidth, usHeight );
 
-	LCD_FillColor ( usWidth * usHeight, usColor );		
+	LCD_FillColor ( usWidth * usHeight, bg_color );
 	
 }
 
+void LCD_Clear_Color ( uint16_t usCOLUMN, uint16_t usPAGE, uint16_t usWidth, uint16_t usHeight, uint16_t usColor){
+	LCD_OpenWindow ( usCOLUMN, usPAGE, usWidth, usHeight );
+	LCD_FillColor ( usWidth * usHeight, usColor );
+}
 
 uint16_t LCD_Read_PixelData ( void )	
 {	
@@ -355,11 +363,14 @@ void LCD_DrawLine ( uint16_t usC1, uint16_t usP1, uint16_t usC2, uint16_t usP2, 
 }   
 
 
-void LCD_DrawChar ( uint16_t usC, uint16_t usP, const char cChar )
+void LCD_DrawChar ( uint16_t usC, uint16_t usP, const char cChar)
 {
 	uint8_t ucTemp, ucRelativePositon, ucPage, ucColumn;
 
-	
+	//Invert Color If Darkmode is Toggle
+	uint16_t ft_color = darkmode_toggle?WHITE:BLACK;
+	uint16_t bg_color = darkmode_toggle?BLACK:WHITE;
+
 	ucRelativePositon = cChar - ' ';
 	
 	LCD_OpenWindow ( usC, usP, WIDTH_EN_CHAR, HEIGHT_EN_CHAR );
@@ -373,10 +384,10 @@ void LCD_DrawChar ( uint16_t usC, uint16_t usP, const char cChar )
 		for ( ucColumn = 0; ucColumn < WIDTH_EN_CHAR; ucColumn ++ )
 		{
 			if ( ucTemp & 0x01 )
-				LCD_Write_Data ( 0x001F );
+				LCD_Write_Data ( ft_color );
 			
 			else
-				LCD_Write_Data (  0xFFFF );								
+				LCD_Write_Data (  bg_color );
 			
 			ucTemp >>= 1;		
 			
@@ -388,7 +399,7 @@ void LCD_DrawChar ( uint16_t usC, uint16_t usP, const char cChar )
 
 
 
-void LCD_DrawString ( uint16_t usC, uint16_t usP, const char * pStr )
+void LCD_DrawString ( uint16_t usC, uint16_t usP, const char * pStr)
 {
 	while ( * pStr != '\0' )
 	{
@@ -404,7 +415,7 @@ void LCD_DrawString ( uint16_t usC, uint16_t usP, const char * pStr )
 			usP = LCD_DispWindow_Start_PAGE;
 		}
 		
-		LCD_DrawChar ( usC, usP, * pStr );
+		LCD_DrawChar ( usC, usP, * pStr);
 		
 		pStr ++;
 		
@@ -462,8 +473,8 @@ void LCD_DrawChar_Color ( uint16_t usC, uint16_t usP, const char cChar, uint16_t
 
 void LCD_DrawCross ( uint16_t usX, uint16_t usY )
 {
-  LCD_Clear ( usX - 10, usY, 20, 1, RED);
-  LCD_Clear ( usX, usY - 10, 1, 20, RED);
+  LCD_Clear_Color ( usX - 10, usY, 20, 1, RED);
+  LCD_Clear_Color ( usX, usY - 10, 1, 20, RED);
 	
 }
 
@@ -594,4 +605,9 @@ void LCD_GramScan ( uint8_t ucOption )
 	LCD_Write_Cmd ( 0x2C );
 	
 	
+}
+
+void LCD_Darkmode_Toggle(){
+	if (!darkmode_toggle) darkmode_toggle = 1;
+	else darkmode_toggle = 0;
 }

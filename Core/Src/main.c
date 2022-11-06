@@ -25,8 +25,8 @@
 /* USER CODE BEGIN Includes */
 #include "lcdtp.h"
 #include "xpt2046.h"
-
-
+#include "UI.h"
+#include "UI_buttons.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -100,34 +100,20 @@ int main(void)
 	
 	LCD_INIT();
 
-	//LCD_Clear (50, 80, 140, 70, RED);
-	//LCD_DrawString(68, 100, "TOUCHPAD DEMO");
-	//HAL_Delay(2000);
-
 	while( ! XPT2046_Touch_Calibrate () );
 
-	LCD_GramScan ( 1 );
 
-	int backcolor = GREY;
-	HOME:
+	//Address To Receive Coordinate
+	strType_XPT2046_Coordinate Coordinate;
 
-	LCD_Clear ( 0, 0, 240, 320, backcolor );
-	//LCD_Clear ( 90,  230,  60, 60, BLUE	);
 
-	//LCD_Clear ( 2, 10, 50, 20, YELLOW);
-	LCD_DrawString(2, 10, "Config");
-	//LCD_Clear ( 200, 10, 50, 20, YELLOW);
-	LCD_DrawString(200, 10, "Stats");
-	//LCD_Clear ( 40, 220, 80, 60, YELLOW);
-	LCD_DrawString(40, 220, "Set");
-	LCD_DrawString(40, 240, "Exercise");
-	LCD_DrawString(40, 260, "Timer");
-	//LCD_Clear ( 140, 220, 80, 60, YELLOW);
-	LCD_DrawString(140, 220, "Drink");
-	LCD_DrawString(140, 240, "water");
-	//LCD_Clear ( 200, 260, 40, 40, YELLOW);
-	LCD_DrawString(200, 260, "Dark");
-	LCD_DrawString(200, 280, "mode");
+	uint8_t mode = 0; //Mode 0 = Home, Mode 1 = Drink Water
+	uint8_t mode_new = 0; //To Determine Whether A Mode is Updated
+	uint8_t render_done=0;
+
+
+
+
 
 
 
@@ -135,31 +121,31 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	int status = 0;
+
 	
   while (1)
   {
-    if ( ucXPT2046_TouchFlag == 1 )	         
-    {
-    	status = Check_touchkey(backcolor);
-      ucXPT2046_TouchFlag = 0;
-      if (status == 1){
-    	  goto HOME;
-      }
-      else if (status == 2){
-    	  if (backcolor == GREY){
-    		  backcolor = BLACK;
-    		  goto HOME;
-    	  }
-    	  else {
-    		  backcolor = GREY;
-    		  goto HOME;
-    	  }
+	  XPT2046_Get_TouchedPoint(&Coordinate,
+	  			&strXPT2046_TouchPara);
+	  do {
+		  //Home Buttons
+		  if(mode==0){
+			  if(Check_touchkey(&home_drink_water,&Coordinate)) {mode_new = 1; break;}
+			  if(Check_touchkey(&home_dark_mode,&Coordinate)) {mode_new = 2; break;}
+		  }
+		  //Other Buttons In Other Screen
 
-            }
-    }					
-		HAL_Delay(50);		
-		
+	  } while (0);
+
+	  //Reset Coordinates
+	  XPT2046_Reset_TouchPoint(&Coordinate);
+
+	  if(mode != mode_new){
+		  mode = mode_new;
+		  render_done = 0;
+	  }
+	  //Render LCD If Enter New Mode
+	  Render(&mode_new, &render_done);
 		
     /* USER CODE END WHILE */
 
