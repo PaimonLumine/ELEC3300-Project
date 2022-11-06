@@ -1,0 +1,6 @@
+../Core/Src/UI.c:3:9:Check_touchkey	24	static
+../Core/Src/UI.c:9:6:Render	16	static
+../Core/Src/UI.c:30:6:UI_Drink_Water	8	static
+../Core/Src/UI.c:45:6:UI_Home	8	static
+../Core/Src/UI.c:59:6:UI_Home_Display_Date	32	static
+../Core/Src/UI.c:75:6:UI_Home_Display_Time	32	static
