@@ -54,6 +54,7 @@
 #define      CMD_Set_PAGE		   0x2B	     
 #define      CMD_SetPixel		   0x2C	     
 
+
 void         		LCD_INIT		( void );
 void           	LCD_Rst			( void );
 void            LCD_BackLed_Control	( FunctionalState enumState );
@@ -62,7 +63,7 @@ void            LCD_Write_Data		( uint16_t usData );
 uint16_t        LCD_Read_Data		( void );
 void						LCD_FillColor		( uint32_t usPoint, uint16_t usColor );
 void            LCD_OpenWindow		( uint16_t usC, uint16_t usP, uint16_t usWidth, uint16_t usHeight );
-void            LCD_Clear		( uint16_t usC, uint16_t usP, uint16_t usWidth, uint16_t usHeight, uint16_t usColor );
+void            LCD_Clear		( uint16_t usC, uint16_t usP, uint16_t usWidth, uint16_t usHeight);
 uint16_t        LCD_GetPointPixel	( uint16_t usC , uint16_t usP );
 void            LCD_DrawLine		( uint16_t usC1, uint16_t usP1, uint16_t usC2, uint16_t usP2, uint16_t usColor );
 void            LCD_DrawChar		( uint16_t usC, uint16_t usP, const char cChar);
@@ -74,6 +75,8 @@ void LCD_DrawCross ( uint16_t usX, uint16_t usY );
 void LCD_DrawChar_Color ( uint16_t usC, uint16_t usP, const char cChar, uint16_t usColor_Background, uint16_t usColor_Foreground );
 void LCD_DrawString_Color ( uint16_t usC, uint16_t usP, const char * pStr, uint16_t usColor_Background, uint16_t usColor_Foreground );
 void LCD_GramScan ( uint8_t ucOption );
+void LCD_Clear_Color ( uint16_t usCOLUMN, uint16_t usPAGE, uint16_t usWidth, uint16_t usHeight, uint16_t usColor);
+void 			LCD_Darkmode_Toggle (void);
 
 #endif 
 

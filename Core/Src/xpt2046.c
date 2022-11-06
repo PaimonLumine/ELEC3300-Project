@@ -388,17 +388,18 @@ uint8_t XPT2046_Touch_Calibrate(void) {
 	LCD_GramScan(1);
 
 	for (i = 0; i < 4; i++) {
-		LCD_Clear(0, 0, usScreenWidth, usScreenHeigth, BACKGROUND);
+		LCD_Clear(0, 0, usScreenWidth, usScreenHeigth);
 
 		pStr = "Touch Calibrate ......";
 		LCD_DrawString_Color(
 				(usScreenWidth - (strlen(pStr) - 7) * WIDTH_EN_CHAR) >> 1,
 				usScreenHeigth >> 1, pStr, BACKGROUND, RED);
 
+		/*
 		sprintf(cStr, "%d", i + 1);
 		LCD_DrawString_Color(usScreenWidth >> 1,
 				(usScreenHeigth >> 1) - HEIGHT_EN_CHAR, cStr, BACKGROUND, RED);
-
+		*/
 		XPT2046_DelayUS(100000);
 
 		LCD_DrawCross(strCrossCoordinate[i].x, strCrossCoordinate[i].y);
@@ -449,9 +450,9 @@ uint8_t XPT2046_Touch_Calibrate(void) {
 
 #endif
 
-	LCD_Clear(0, 0, usScreenWidth, usScreenHeigth, BACKGROUND);
+	LCD_Clear(0, 0, usScreenWidth, usScreenHeigth);
 
-	pStr = "Calibrate Succed";
+	pStr = "Welcome !";
 	LCD_DrawString_Color((usScreenWidth - strlen(pStr) * WIDTH_EN_CHAR) >> 1,
 			usScreenHeigth >> 1, pStr, BACKGROUND, RED);
 
@@ -461,7 +462,7 @@ uint8_t XPT2046_Touch_Calibrate(void) {
 
 	Failure:
 
-	LCD_Clear(0, 0, usScreenWidth, usScreenHeigth, BACKGROUND);
+	LCD_Clear(0, 0, usScreenWidth, usScreenHeigth);
 
 	pStr = "Calibrate fail";
 	LCD_DrawString_Color((usScreenWidth - strlen(pStr) * WIDTH_EN_CHAR) >> 1,
@@ -498,43 +499,10 @@ uint8_t XPT2046_Get_TouchedPoint(strType_XPT2046_Coordinate *pDisplayCoordinate,
 
 }
 
-int Check_touchkey(int backcolor) {
-	strType_XPT2046_Coordinate strDisplayCoordinate;
-
-	if (XPT2046_Get_TouchedPoint(&strDisplayCoordinate,
-			&strXPT2046_TouchPara)) {
-		/*if ( ( strDisplayCoordinate .y > 232 ) && ( strDisplayCoordinate .y < 282 ) )
-		 {
-		 if ( ( strDisplayCoordinate .x > 95 ) && ( strDisplayCoordinate .x < 145 ) )
-		 {
-		 GPIOB -> ODR ^= GPIO_PIN_1;
-		 }
-		 }*/
-		if ((strDisplayCoordinate.y > 220) && (strDisplayCoordinate.y < 255)) {
-			if ((strDisplayCoordinate.x > 140)
-					&& (strDisplayCoordinate.x < 200)) {
-				LCD_Clear(0, 0, 240, 320, backcolor);
-				LCD_DrawString(10, 150, "Drinked a glass of water");
-				LCD_DrawString(10, 250, "Return to home in 2s");
-				HAL_Delay(1000);
-				LCD_Clear(0, 0, 240, 320, backcolor);
-				LCD_DrawString(10, 150, "Drinked a glass of water");
-				LCD_DrawString(10, 250, "Return to home in 1s");
-				HAL_Delay(1000);
-				LCD_Clear(0, 0, 240, 320, backcolor);
-				LCD_DrawString(10, 150, "Drinked a glass of water");
-				LCD_DrawString(10, 250, "Return to home in 0s");
-				HAL_Delay(1000);
-				return 1;
-			}
-		}
-		if ((strDisplayCoordinate.y > 260) && (strDisplayCoordinate.y < 300)) {
-					if ((strDisplayCoordinate.x > 210)
-							&& (strDisplayCoordinate.x < 240)) {
-						return 2;
-					}
-				}
-	}
-	return 0;
+void XPT2046_Reset_TouchPoint(strType_XPT2046_Coordinate *pDisplayCoordinate){
+	//Reset X and Y
+	pDisplayCoordinate->x = 0;
+	pDisplayCoordinate->y = 0;
 }
+
 

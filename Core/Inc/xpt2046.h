@@ -99,8 +99,8 @@ void                     XPT2046_Init                    ( void );
 
 uint8_t                  XPT2046_Touch_Calibrate         ( void );
 uint8_t                  XPT2046_Get_TouchedPoint        ( strType_XPT2046_Coordinate * displayPtr, strType_XPT2046_TouchPara * para );
- 
-int Check_touchkey (int);
+void XPT2046_Reset_TouchPoint(strType_XPT2046_Coordinate *pDisplayCoordinate);
+
 
 //-----------------------------
   
