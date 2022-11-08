@@ -1,4 +1,5 @@
 #include "UI.h"
+#include "lcdtp.h"
 
 uint8_t Check_touchkey(const int* constraints ,strType_XPT2046_Coordinate *pDisplayCoordinate) {
 	uint8_t match = (constraints[0]<= pDisplayCoordinate->x && constraints[1]>= pDisplayCoordinate->x
@@ -10,7 +11,7 @@ void Render(uint8_t* mode_new, uint8_t* render_status){
 	//Not Render if done
 	if(*render_status==1) return;
 
-	//Mode 0 = Home, Mode 1 = Drink Water, Mode 2 = Toggle Dark Mode
+	//Mode 0 = Home, Mode 1 = Drink Water, Mode 2 = Toggle Dark Mode, Mode 3 = Pet
 	switch(*mode_new){
 		case(0):
 			UI_Home();
@@ -23,6 +24,7 @@ void Render(uint8_t* mode_new, uint8_t* render_status){
 			LCD_Darkmode_Toggle();
 			*mode_new = 0;
 			break;
+
 	}
 	*render_status = 1;
 }
@@ -87,3 +89,10 @@ void UI_Home_Display_Time(uint8_t hour, uint8_t minute, uint8_t second){
 	sprintf(str, "%02i", second);
 	LCD_DrawString(135, 30, str);
 }
+
+void UI_Home_Display_Pet(uint16_t StartX, uint16_t StartY,unsigned char *pic){
+
+	LCD_DrawPicture(StartX,StartY,pic);
+}
+
+

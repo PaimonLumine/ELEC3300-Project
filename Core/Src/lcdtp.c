@@ -611,3 +611,23 @@ void LCD_Darkmode_Toggle(){
 	if (!darkmode_toggle) darkmode_toggle = 1;
 	else darkmode_toggle = 0;
 }
+
+void LCD_DrawPicture(uint16_t StartX, uint16_t StartY,unsigned char *pic) {
+		uint32_t i = 8, len;
+		uint16_t temp, x, y;
+
+		x = ((uint16_t) (pic[2] << 8) + pic[3]) - 1;	  	//get width
+		y = ((uint16_t) (pic[4] << 8) + pic[5]) - 1;	  	//get height
+
+		LCD_OpenWindow ( StartX, StartY, 120,120 );
+		//LCD_FillColor ( StartX*StartY ,0x01010);
+		LCD_Write_Cmd(CMD_SetPixel);					//fillcolor
+		len = 2 * ((uint16_t) (pic[2] << 8) + pic[3])
+				* ((uint16_t) (pic[4] << 8) + pic[5]);   	//calculate size
+
+		while (i < (len + 8)) {							 	//start from the 9th
+			temp = (uint16_t) (pic[i] << 8) + pic[i + 1];	//2bits once
+			LCD_Write_Data(temp);
+			i = i + 2;
+		}
+}

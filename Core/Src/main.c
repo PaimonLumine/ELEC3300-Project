@@ -31,6 +31,7 @@
 #include "dht11.h"
 #include "printf.h"
 #include "timer.h"
+#include "pet.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -137,11 +138,10 @@ int main(void)
 	TimeStamp real_time; //read real time data by calling - get_TimeStamp(&real_time);
 
 	//Flow control of UI
-	uint8_t mode = 0; //Current Mode: Mode 0 = Home, Mode 1 = Drink Water
+	uint8_t mode = 0; //Current Mode: Mode 0 = Home, Mode 1 = Drink Water, Mode 3 = Pet
 	uint8_t mode_new = 0; //To Determine Whether A Mode is Updated
 	uint8_t render_done=0;
-
-
+	const char * petStats = normal;
 	//Calibration of TouchPad
 	while( ! XPT2046_Touch_Calibrate () );
 
@@ -162,8 +162,9 @@ int main(void)
 		  RTC_Get();
 		  UI_Home_Display_Date(real_time.ryear, real_time.rmon, real_time.rday);
 		  UI_Home_Display_Time(real_time.rhour, real_time.rmin, real_time.rsec);
+		  UI_Home_Display_Pet(60,70,petStats);
 	  }
-
+	  petStats = normal;
 	  get_TimeStamp(&real_time);
 
 	  do {
@@ -171,6 +172,7 @@ int main(void)
 		  if(mode==0){
 			  if(Check_touchkey(&home_drink_water,&Coordinate)) {mode_new = 1; break;}
 			  if(Check_touchkey(&home_dark_mode,&Coordinate)) {mode_new = 2; break;}
+			  if(Check_touchkey(&home_pet,&Coordinate)) {mode_new = 0;	petStats = happy1; break;}
 		  }
 		  //Other Buttons In Other Screen
 

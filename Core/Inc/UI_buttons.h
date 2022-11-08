@@ -11,5 +11,5 @@
 /*Button Positions     {x1, x2, y1, y2}*/
 const unsigned int home_drink_water[4] = {140,200,220,255};
 const unsigned int home_dark_mode[4] = {210,240,260,300};
-
+const unsigned int home_pet[4] = {60,180,100,190};
 #endif /* INC_UI_BUTTONS_H_ */
