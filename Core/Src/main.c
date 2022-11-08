@@ -28,6 +28,9 @@
 #include "UI.h"
 #include "UI_buttons.h"
 #include "rtc.h"
+#include "dht11.h"
+#include "printf.h"
+#include "timer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,6 +51,10 @@
 /* Private variables ---------------------------------------------------------*/
 RTC_HandleTypeDef hrtc;
 
+TIM_HandleTypeDef htim2;
+
+UART_HandleTypeDef huart1;
+
 SRAM_HandleTypeDef hsram1;
 
 /* USER CODE BEGIN PV */
@@ -59,6 +66,8 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_FSMC_Init(void);
 void MX_RTC_Init(void);
+static void MX_USART1_UART_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -97,27 +106,45 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_FSMC_Init();
+  MX_USART1_UART_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-	RTC_Init(&hrtc);
 
+  	/*
+  	 * Module Initializations:
+  	 * rtc.c
+  	 * timer.c
+  	 * printf.c
+  	 * XPT2046.c
+  	 */
+	RTC_Init(&hrtc);
+	TIM2_INIT(&htim2);
+	USART1_PRINT_INIT(&huart1);
 	macXPT2046_CS_DISABLE();
-	
 	LCD_INIT();
 
-	while( ! XPT2046_Touch_Calibrate () );
 
+	/*
+	 * Variables Initializations:
+	 * DHT11_data -> Receive data from DHT11
+	 * Coordinate -> Receive touch coordinate of LCD
+	 * real_time  -> Receive data from rtc
+	 *
+	 * mode, mode_new, render_done -> Flow control for UI
+	 */
+	DHT11_datastruct DHT11_data; // read data by calling -  DHT11_ReadData(&DHT11_data);
+	strType_XPT2046_Coordinate Coordinate; //Coordinate of LCD
+	TimeStamp real_time; //read real time data by calling - get_TimeStamp(&real_time);
 
-	//Address To Receive Coordinate
-	strType_XPT2046_Coordinate Coordinate;
-
-
+	//Flow control of UI
 	uint8_t mode = 0; //Current Mode: Mode 0 = Home, Mode 1 = Drink Water
 	uint8_t mode_new = 0; //To Determine Whether A Mode is Updated
 	uint8_t render_done=0;
 
 
-	RTC_Get();
-	TimeStamp t;
+	//Calibration of TouchPad
+	while( ! XPT2046_Touch_Calibrate () );
+
 
   /* USER CODE END 2 */
 
@@ -133,11 +160,11 @@ int main(void)
 	  //!!Just For Testing, Need Refactoring Later
 	  if(mode==0) {
 		  RTC_Get();
-		  UI_Home_Display_Date(t.ryear,t.rmon,t.rday);
-		  UI_Home_Display_Time(t.rhour, t.rmin, t.rsec);
+		  UI_Home_Display_Date(real_time.ryear, real_time.rmon, real_time.rday);
+		  UI_Home_Display_Time(real_time.rhour, real_time.rmin, real_time.rsec);
 	  }
 
-	  get_TimeStamp(&t);
+	  get_TimeStamp(&real_time);
 
 	  do {
 		  //Home Buttons
@@ -272,6 +299,84 @@ void MX_RTC_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 72-1;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 65535;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -291,13 +396,16 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2|GPIO_PIN_0|GPIO_PIN_1, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(DHT11_GPIO_Port, DHT11_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_5, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PE2 PE0 PE1 */
-  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_0|GPIO_PIN_1;
+  /*Configure GPIO pins : PE2 DHT11_Pin PE0 PE1 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2|DHT11_Pin|GPIO_PIN_0|GPIO_PIN_1;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
