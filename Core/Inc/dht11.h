@@ -10,7 +10,18 @@ uint8_t Dht11_Check();
 uint8_t Dht11_ReadBit();
 uint8_t Dht11_ReadByte();
 uint8_t DHT11_Init();
-uint8_t DHT11_ReadData(uint8_t *h);
-void dht11_delay_us( __IO uint32_t us);
+
+
+typedef struct
+{
+	uint8_t humid_int,
+		  humid_dec,
+          temp_int,
+          temp_dec,
+		  check_sum;
+
+} DHT11_datastruct;
+
+uint8_t DHT11_ReadData(DHT11_datastruct *ds);
 
 #endif /* INC_DHT11_H_ */

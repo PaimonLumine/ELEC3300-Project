@@ -1,4 +1,4 @@
-Core/Src/dht11.o: ../Core/Src/dht11.c ../Core/Inc/dht11.h \
+Core/Src/timer.o: ../Core/Src/timer.c ../Core/Inc/timer.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
  ../Core/Inc/stm32f1xx_hal_conf.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h \
@@ -25,9 +25,8 @@ Core/Src/dht11.o: ../Core/Src/dht11.c ../Core/Inc/dht11.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rtc_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
- ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/printf.h ../Core/Inc/printf.h ../Core/Inc/timer.h
-../Core/Inc/dht11.h:
+ ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+../Core/Inc/timer.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
 ../Core/Inc/stm32f1xx_hal_conf.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h:
@@ -55,6 +54,3 @@ Core/Src/dht11.o: ../Core/Src/dht11.c ../Core/Inc/dht11.h \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
-../Core/Inc/printf.h:
-../Core/Inc/printf.h:
-../Core/Inc/timer.h:

@@ -9,6 +9,7 @@
 "./Core/Src/syscalls.o"
 "./Core/Src/sysmem.o"
 "./Core/Src/system_stm32f1xx.o"
+"./Core/Src/timer.o"
 "./Core/Src/xpt2046.o"
 "./Core/Startup/startup_stm32f103vetx.o"
 "./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.o"

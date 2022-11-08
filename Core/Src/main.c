@@ -30,6 +30,7 @@
 #include "rtc.h"
 #include "dht11.h"
 #include "printf.h"
+#include "timer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -108,32 +109,42 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+
+  	/*
+  	 * Module Initializations:
+  	 * rtc.c
+  	 * timer.c
+  	 * printf.c
+  	 * XPT2046.c
+  	 */
 	RTC_Init(&hrtc);
+	TIM2_INIT(&htim2);
 	USART1_PRINT_INIT(&huart1);
 	macXPT2046_CS_DISABLE();
-
-	HAL_Delay(1500);
-	uint8_t ck = DHT11_Init();
 	LCD_INIT();
 
-	uint8_t DHT11_BUF[4] = {0};
 
-	DHT11_ReadData(DHT11_BUF);
+	/*
+	 * Variables Initializations:
+	 * DHT11_data -> Receive data from DHT11
+	 * Coordinate -> Receive touch coordinate of LCD
+	 * real_time  -> Receive data from rtc
+	 *
+	 * mode, mode_new, render_done -> Flow control for UI
+	 */
+	DHT11_datastruct DHT11_data; // read data by calling -  DHT11_ReadData(&DHT11_data);
+	strType_XPT2046_Coordinate Coordinate; //Coordinate of LCD
+	TimeStamp real_time; //read real time data by calling - get_TimeStamp(&real_time);
 
-	while( ! XPT2046_Touch_Calibrate () );
-
-
-	//Address To Receive Coordinate
-	strType_XPT2046_Coordinate Coordinate;
-
-
+	//Flow control of UI
 	uint8_t mode = 0; //Current Mode: Mode 0 = Home, Mode 1 = Drink Water
 	uint8_t mode_new = 0; //To Determine Whether A Mode is Updated
 	uint8_t render_done=0;
 
 
+	//Calibration of TouchPad
+	while( ! XPT2046_Touch_Calibrate () );
 
-	TimeStamp t;
 
   /* USER CODE END 2 */
 
@@ -149,11 +160,11 @@ int main(void)
 	  //!!Just For Testing, Need Refactoring Later
 	  if(mode==0) {
 		  RTC_Get();
-		  UI_Home_Display_Date(t.ryear,t.rmon,t.rday);
-		  UI_Home_Display_Time(t.rhour, t.rmin, t.rsec);
+		  UI_Home_Display_Date(real_time.ryear, real_time.rmon, real_time.rday);
+		  UI_Home_Display_Time(real_time.rhour, real_time.rmin, real_time.rsec);
 	  }
 
-	  get_TimeStamp(&t);
+	  get_TimeStamp(&real_time);
 
 	  do {
 		  //Home Buttons
@@ -308,7 +319,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 72-1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 0xffff-1;
+  htim2.Init.Period = 65535;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
