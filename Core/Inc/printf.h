@@ -45,7 +45,7 @@ extern "C" {
  * This function is declared here only. You have to write your custom implementation somewhere
  * \param character Character to output
  */
-void USART1_PRINT_INIT(UART_HandleTypeDef* h);
+extern UART_HandleTypeDef huart1;
 void _putchar(char character);
 
 

@@ -633,7 +633,7 @@ void LCD_DrawPicture(uint16_t StartX, uint16_t StartY,unsigned char *pic) {
 				* ((uint16_t) (pic[4] << 8) + pic[5]);   	//calculate size
 
 		while (i < (len + 8)) {							 	//start from the 9th
-			temp = (uint16_t) (pic[i] << 8) + pic[i + 1];	//2bits once
+			temp = (uint16_t) (pic[i] << 8) | pic[i + 1];	//2bits once
 			LCD_Write_Data(temp);
 			i = i + 2;
 		}
