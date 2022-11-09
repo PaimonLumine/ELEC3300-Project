@@ -1,5 +1,6 @@
 #include "lcdtp.h"
 #include "ascii.h"	
+#include "pet.h"
 
 void		LCD_REG_Config          ( void );
 void		LCD_FillColor           ( uint32_t ulAmout_Point, uint16_t usColor );
@@ -607,9 +608,15 @@ void LCD_GramScan ( uint8_t ucOption )
 	
 }
 
-void LCD_Darkmode_Toggle(){
-	if (!darkmode_toggle) darkmode_toggle = 1;
-	else darkmode_toggle = 0;
+void LCD_Darkmode_Toggle(unsigned char *petStats){
+	if (!darkmode_toggle) {
+		darkmode_toggle = 1;
+		petStats = sleep;
+	}
+	else {
+		darkmode_toggle = 0;
+		petStats = normal;
+	}
 }
 
 void LCD_DrawPicture(uint16_t StartX, uint16_t StartY,unsigned char *pic) {

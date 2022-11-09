@@ -2,6 +2,7 @@
 "./Core/Src/dht11.o"
 "./Core/Src/lcdtp.o"
 "./Core/Src/main.o"
+"./Core/Src/pet.o"
 "./Core/Src/printf.o"
 "./Core/Src/rtc.o"
 "./Core/Src/stm32f1xx_hal_msp.o"

@@ -7,7 +7,7 @@ uint8_t Check_touchkey(const int* constraints ,strType_XPT2046_Coordinate *pDisp
 	 return match;
 }
 
-void Render(uint8_t* mode_new, uint8_t* render_status){
+void Render(uint8_t* mode_new, uint8_t* render_status,unsigned char *petStats){
 	//Not Render if done
 	if(*render_status==1) return;
 
@@ -21,7 +21,7 @@ void Render(uint8_t* mode_new, uint8_t* render_status){
 			*mode_new = 0;
 			break;
 		case(2):
-			LCD_Darkmode_Toggle();
+			LCD_Darkmode_Toggle(petStats);
 			*mode_new = 0;
 			break;
 

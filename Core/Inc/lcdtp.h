@@ -76,7 +76,7 @@ void LCD_DrawChar_Color ( uint16_t usC, uint16_t usP, const char cChar, uint16_t
 void LCD_DrawString_Color ( uint16_t usC, uint16_t usP, const char * pStr, uint16_t usColor_Background, uint16_t usColor_Foreground );
 void LCD_GramScan ( uint8_t ucOption );
 void LCD_Clear_Color ( uint16_t usCOLUMN, uint16_t usPAGE, uint16_t usWidth, uint16_t usHeight, uint16_t usColor);
-void 			LCD_Darkmode_Toggle (void);
+void LCD_Darkmode_Toggle (unsigned char *petStats);
 void LCD_DrawPicture(uint16_t StartX, uint16_t StartY, unsigned char *pic);
 #endif 
 

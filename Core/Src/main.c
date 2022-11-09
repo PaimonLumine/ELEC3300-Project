@@ -141,7 +141,7 @@ int main(void)
 	uint8_t mode = 0; //Current Mode: Mode 0 = Home, Mode 1 = Drink Water, Mode 3 = Pet
 	uint8_t mode_new = 0; //To Determine Whether A Mode is Updated
 	uint8_t render_done=0;
-	const char * petStats = normal;
+	const unsigned char * petStats = normal;
 	//Calibration of TouchPad
 	while( ! XPT2046_Touch_Calibrate () );
 
@@ -164,15 +164,17 @@ int main(void)
 		  UI_Home_Display_Time(real_time.rhour, real_time.rmin, real_time.rsec);
 		  UI_Home_Display_Pet(60,70,petStats);
 	  }
-	  petStats = normal;
 	  get_TimeStamp(&real_time);
+	  if (petStats != sleep){
+		  petStats = normal;
+	  }
 
 	  do {
 		  //Home Buttons
 		  if(mode==0){
 			  if(Check_touchkey(&home_drink_water,&Coordinate)) {mode_new = 1; break;}
 			  if(Check_touchkey(&home_dark_mode,&Coordinate)) {mode_new = 2; break;}
-			  if(Check_touchkey(&home_pet,&Coordinate)) {mode_new = 0;	petStats = happy1; break;}
+			  if(Check_touchkey(&home_pet,&Coordinate)) {mode_new = 0;	if (petStats != sleep) {petStats = happy1;}; break;}
 		  }
 		  //Other Buttons In Other Screen
 
@@ -184,9 +186,17 @@ int main(void)
 	  if(mode != mode_new){
 		  mode = mode_new;
 		  render_done = 0;
+		  if (mode_new == 2){
+			  if (petStats == sleep){
+				  petStats = normal;
+			  }
+			  else {
+				  petStats = sleep;
+			  }
+		  }
 	  }
 	  //Render LCD If Enter New Mode
-	  Render(&mode_new, &render_done);
+	  Render(&mode_new, &render_done,petStats);
 		
     /* USER CODE END WHILE */
 
