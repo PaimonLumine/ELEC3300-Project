@@ -59,7 +59,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-
+extern TIM_HandleTypeDef htim3;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -218,6 +218,35 @@ void EXTI4_IRQHandler(void)
   /* USER CODE BEGIN EXTI4_IRQn 1 */
 
   /* USER CODE END EXTI4_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM3 global interrupt.
+  */
+void TIM3_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM3_IRQn 0 */
+	extern uint8_t timer_left, start_counting;
+	--timer_left;
+	if(timer_left==0 && start_counting==1){
+		/*Timer Ends, Handle the water drinking progress*/
+
+		//extern void LCD_DrawString	( uint16_t usC, uint16_t usP, const char * pStr);
+		//LCD_DrawString(5,5,"Hi");
+
+
+
+		/* End of Line */
+		extern TIM_HandleTypeDef htim3;
+		HAL_TIM_Base_Stop(&htim3);
+		HAL_TIM_Base_Stop_IT(&htim3);
+		start_counting = 0;
+	}
+  /* USER CODE END TIM3_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim3);
+  /* USER CODE BEGIN TIM3_IRQn 1 */
+
+  /* USER CODE END TIM3_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

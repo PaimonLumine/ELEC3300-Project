@@ -3,7 +3,10 @@
 
 #include "stm32f1xx_hal.h"
 
-void TIM2_INIT(TIM_HandleTypeDef* htim2);
+extern TIM_HandleTypeDef htim2, htim3;
+
 void delay_us(uint16_t nus);
+void timer_min(uint8_t min);
+
 
 #endif /* INC_TIMER_H_ */
