@@ -167,7 +167,15 @@ int main(void)
 	  }
 	  get_TimeStamp(&real_time);
 	  if (petStats != sleep){
-		  petStats = normal;
+		  if (DHT11_data.temp_int > 27){
+			  petStats = hot;
+		  }
+		  else if (DHT11_data.temp_int < 24){
+			  petStats = cold;
+		  }
+		  else {
+			  petStats = normal;
+		  }
 	  }
 
 	  do {
