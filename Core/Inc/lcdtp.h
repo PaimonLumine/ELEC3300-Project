@@ -2,6 +2,7 @@
 #define	__LCD_H
 
 #include "stm32f1xx_hal.h"
+#include "dht11.h"
 
 #define      FSMC_Addr_LCD_CMD         ( ( uint32_t ) 0x60000000 )	    
 #define      FSMC_Addr_LCD_DATA        ( ( uint32_t ) 0x60020000 )          
@@ -78,5 +79,6 @@ void LCD_GramScan ( uint8_t ucOption );
 void LCD_Clear_Color ( uint16_t usCOLUMN, uint16_t usPAGE, uint16_t usWidth, uint16_t usHeight, uint16_t usColor);
 void LCD_Darkmode_Toggle (unsigned char *petStats);
 void LCD_DrawPicture(uint16_t StartX, uint16_t StartY, unsigned char *pic);
+void LCD_DHT11(DHT11_datastruct *ds);
 #endif 
 

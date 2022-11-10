@@ -163,6 +163,7 @@ int main(void)
 		  UI_Home_Display_Date(real_time.ryear, real_time.rmon, real_time.rday);
 		  UI_Home_Display_Time(real_time.rhour, real_time.rmin, real_time.rsec);
 		  UI_Home_Display_Pet(60,70,petStats);
+		  UI_Home_Display_DHT11(&DHT11_data);
 	  }
 	  get_TimeStamp(&real_time);
 	  if (petStats != sleep){

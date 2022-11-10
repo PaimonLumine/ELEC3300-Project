@@ -1,6 +1,7 @@
 #include "UI.h"
 #include "lcdtp.h"
 
+
 uint8_t Check_touchkey(const int* constraints ,strType_XPT2046_Coordinate *pDisplayCoordinate) {
 	uint8_t match = (constraints[0]<= pDisplayCoordinate->x && constraints[1]>= pDisplayCoordinate->x
 			 && constraints[2]<= pDisplayCoordinate->y && constraints[3]>= pDisplayCoordinate->y);
@@ -94,5 +95,27 @@ void UI_Home_Display_Pet(uint16_t StartX, uint16_t StartY,unsigned char *pic){
 
 	LCD_DrawPicture(StartX,StartY,pic);
 }
+
+void UI_Home_Display_DHT11(DHT11_datastruct *ds){
+	LCD_DHT11(ds);
+	char Stemp[10];
+	char Shum[10];
+	sprintf(Stemp, "%02i", ds->temp_int);
+	LCD_DrawString(10,50,"T");
+	LCD_DrawString(0,70,Stemp);
+	if (LCD_GetPointPixel(240,320) == 0x000000){
+		LCD_DrawCircle(17,72,2, WHITE);
+	}
+	else{
+		LCD_DrawCircle(17,72,2, BLACK);
+	}
+	LCD_DrawString(20,70,"C");
+	sprintf(Shum, "%03i", ds->humid_int);
+	LCD_DrawString(220,50,"H");
+	LCD_DrawString(205,70,Shum);
+	LCD_DrawString(230,70,"%");
+
+}
+
 
 

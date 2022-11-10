@@ -2,6 +2,7 @@
 #include "ascii.h"	
 #include "pet.h"
 
+
 void		LCD_REG_Config          ( void );
 void		LCD_FillColor           ( uint32_t ulAmout_Point, uint16_t usColor );
 uint16_t	LCD_Read_PixelData      ( void );
@@ -439,7 +440,11 @@ void LCD_DrawDot(uint16_t usCOLUMN, uint16_t usPAGE, uint16_t usColor)
 
 void LCD_DrawCircle ( uint16_t usC, uint16_t usP, uint16_t R, uint16_t usColor)
 {	
-
+	for (double i = 0; i < 2*3.14159265358979323846; i = i + 0.01){
+			int x = usC + R*cos(i);
+			int y = usP + R*sin(i);
+			LCD_DrawDot(x,y,usColor);
+		}
 }
 
 void LCD_DrawChar_Color ( uint16_t usC, uint16_t usP, const char cChar, uint16_t usColor_Background, uint16_t usColor_Foreground )
@@ -637,4 +642,9 @@ void LCD_DrawPicture(uint16_t StartX, uint16_t StartY,unsigned char *pic) {
 			LCD_Write_Data(temp);
 			i = i + 2;
 		}
+}
+
+void LCD_DHT11(DHT11_datastruct *ds){
+	DHT11_ReadData(ds);
+
 }
