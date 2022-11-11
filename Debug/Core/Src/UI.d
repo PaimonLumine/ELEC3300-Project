@@ -26,7 +26,8 @@ Core/Src/UI.o: ../Core/Src/UI.c ../Core/Inc/UI.h ../Core/Inc/xpt2046.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/lcdtp.h
+ ../Core/Inc/dht11.h ../Core/Inc/printf.h ../Core/Inc/lcdtp.h \
+ ../Core/Inc/rtc.h
 ../Core/Inc/UI.h:
 ../Core/Inc/xpt2046.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
@@ -56,4 +57,7 @@ Core/Src/UI.o: ../Core/Src/UI.c ../Core/Inc/UI.h ../Core/Inc/xpt2046.h \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
+../Core/Inc/dht11.h:
+../Core/Inc/printf.h:
 ../Core/Inc/lcdtp.h:
+../Core/Inc/rtc.h:

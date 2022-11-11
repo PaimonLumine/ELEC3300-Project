@@ -54,6 +54,7 @@ RTC_HandleTypeDef hrtc;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim5;
 
 UART_HandleTypeDef huart1;
 
@@ -71,6 +72,7 @@ void MX_RTC_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM5_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -78,6 +80,26 @@ static void MX_TIM3_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+/*
+ * Variables Initializations:
+ * DHT11_data -> Receive data from DHT11
+ * Coordinate -> Receive touch coordinate of LCD
+ * real_time  -> Receive data from rtc
+ *
+ * mode, mode_new, render_done -> Flow control for UI
+ */
+DHT11_datastruct DHT11_data = {0}; // read data by calling -  DHT11_ReadData(&DHT11_data);
+strType_XPT2046_Coordinate Coordinate = {0}; //Coordinate of LCD
+TimeStamp real_time = {0}; //read real time data by calling - get_TimeStamp(&real_time);
+uint32_t lastupdate_raw, lastdrink_raw = 0;
+
+/*
+ * Status Variables
+ * petStats -> Current Image Of Pet
+ * DHT11_SCHEDULE_FLAG -> Read DHT11 Data when Flag = 1
+ */
+const unsigned char * petStats = normal;
+uint8_t DHT11_SCHEDULE_FLAG = 1;
 /* USER CODE END 0 */
 
 /**
@@ -112,6 +134,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
 
   	/*
@@ -124,30 +147,25 @@ int main(void)
 	macXPT2046_CS_DISABLE();
 	LCD_INIT();
 
-
-	/*
-	 * Variables Initializations:
-	 * DHT11_data -> Receive data from DHT11
-	 * Coordinate -> Receive touch coordinate of LCD
-	 * real_time  -> Receive data from rtc
-	 *
-	 * mode, mode_new, render_done -> Flow control for UI
-	 */
-	DHT11_datastruct DHT11_data; // read data by calling -  DHT11_ReadData(&DHT11_data);
-	strType_XPT2046_Coordinate Coordinate; //Coordinate of LCD
-	TimeStamp real_time; //read real time data by calling - get_TimeStamp(&real_time);
-	int lastdrink;
 	RTC_Get();
 	get_TimeStamp(&real_time);
-	lastdrink = real_time.rday*86400 + real_time.rhour * 3600 + real_time.rmin *60 + real_time.rsec;
-
+	lastdrink_raw = RTC_raw();
 	//Flow control of UI
 	uint8_t mode = 0; //Current Mode: Mode 0 = Home, Mode 1 = Drink Water, Mode 3 = Pet
 	uint8_t mode_new = 0; //To Determine Whether A Mode is Updated
-	uint8_t render_done=0;
-	const unsigned char * petStats = normal;
+	uint8_t render_done=0;//Set To 1 Whenever Screen Need to Update
+	uint8_t pet_update=0; //Set To 1 Whenever Pet Image Need to Update
+
 	//Calibration of TouchPad
 	while( ! XPT2046_Touch_Calibrate () );
+	DHT11_ReadData(&DHT11_data);
+
+	/*
+	 * Scheduling Event
+	 * Tim3: Water Alarm
+	 * Tim5: Update Temperature/ Weather Data
+	 */
+	TIMER_INIT();
 	timer_min(1);
 
   /* USER CODE END 2 */
@@ -161,28 +179,29 @@ int main(void)
 	  XPT2046_Get_TouchedPoint(&Coordinate,
 	  			&strXPT2046_TouchPara);
 
-	  //!!Just For Testing, Need Refactoring Later
+	  //!!Only For UI that is changing every moment, Just For Testing, Need Refactoring Later
 	  if(mode==0) {
 		  RTC_Get();
 		  UI_Home_Display_Date(real_time.ryear, real_time.rmon, real_time.rday);
 		  UI_Home_Display_Time(real_time.rhour, real_time.rmin, real_time.rsec);
-		  UI_Home_Display_Pet(60,70,petStats);
-		  UI_Home_Display_DHT11(&DHT11_data);
 	  }
 	  else if (mode == 3){
 		  RTC_Get();
-		  UI_Stats_Update(lastdrink);
+		  UI_Stats_Update();
 	  }
 	  get_TimeStamp(&real_time);
-	  if (petStats != sleep){
+	  if (petStats != sleep && mode==0){
 		  if (DHT11_data.temp_int > 27){
 			  petStats = hot;
+			  pet_update = 1;
 		  }
 		  else if (DHT11_data.temp_int < 24){
 			  petStats = cold;
+			  pet_update = 1;
 		  }
 		  else {
 			  petStats = normal;
+			  pet_update = 1;
 		  }
 	  }
 
@@ -191,7 +210,7 @@ int main(void)
 		  if(mode==0){
 			  if(Check_touchkey(&home_drink_water,&Coordinate)) {mode_new = 1; break;}
 			  if(Check_touchkey(&home_dark_mode,&Coordinate)) {mode_new = 2; break;}
-			  if(Check_touchkey(&home_pet,&Coordinate)) {mode_new = 0;	if (petStats != sleep) {petStats = happy1;}; break;}
+			  if(Check_touchkey(&home_pet,&Coordinate)) {pet_update = 1;	if (petStats != sleep) {petStats = happy1;}; break;}
 			  if(Check_touchkey(&home_stats,&Coordinate)) {mode_new = 3; break;}
 		  }
 		  //Other Buttons In Other Screen
@@ -207,17 +226,26 @@ int main(void)
 	  if(mode != mode_new){
 		  mode = mode_new;
 		  render_done = 0;
-		  if (mode_new == 2){
-			  if (petStats == sleep){
-				  petStats = normal;
-			  }
-			  else {
-				  petStats = sleep;
-			  }
-		  }
 	  }
+
+
+	  //Render Pet Image If Updated
+	  if(pet_update){
+		  UI_Home_Display_Pet(60,70,petStats);
+		  pet_update = 0;
+	  }
+
+	  //Flag Enables Every 30 Seconds
+	  if(DHT11_SCHEDULE_FLAG){
+		  DHT11_ReadData(&DHT11_data);
+		  DHT11_SCHEDULE_FLAG = 0;
+		  if(mode==0) UI_Home_Display_DHT11();
+	  }
+
 	  //Render LCD If Enter New Mode
-	  Render(&mode_new, &render_done,petStats,lastdrink);
+	  Render(&mode_new, &render_done,petStats);
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -417,6 +445,51 @@ static void MX_TIM3_Init(void)
   /* USER CODE BEGIN TIM3_Init 2 */
 
   /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
+  * @brief TIM5 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM5_Init(void)
+{
+
+  /* USER CODE BEGIN TIM5_Init 0 */
+
+  /* USER CODE END TIM5_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM5_Init 1 */
+
+  /* USER CODE END TIM5_Init 1 */
+  htim5.Instance = TIM5;
+  htim5.Init.Prescaler = 63999;
+  htim5.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim5.Init.Period = 33749;
+  htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim5, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM5_Init 2 */
+
+  /* USER CODE END TIM5_Init 2 */
 
 }
 

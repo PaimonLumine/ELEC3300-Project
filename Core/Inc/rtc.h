@@ -9,7 +9,7 @@ uint8_t Is_Leap_Year(uint16_t year);
 uint8_t RTC_Get(void);
 uint8_t RTC_Set(uint16_t syear, int8_t smon, uint8_t sday,uint8_t rhour,uint8_t rmin,uint8_t rsec);
 uint8_t RTC_Get_Week(uint16_t year, uint16_t month, uint16_t day);
-
+uint32_t RTC_raw();
 
 typedef	struct
 {
