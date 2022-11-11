@@ -1,36 +1,43 @@
 #include "UI.h"
 #include "lcdtp.h"
+#include "rtc.h"
 
-
-uint8_t Check_touchkey(const int* constraints ,strType_XPT2046_Coordinate *pDisplayCoordinate) {
-	uint8_t match = (constraints[0]<= pDisplayCoordinate->x && constraints[1]>= pDisplayCoordinate->x
-			 && constraints[2]<= pDisplayCoordinate->y && constraints[3]>= pDisplayCoordinate->y);
-	 return match;
+uint8_t Check_touchkey(const int *constraints,
+		strType_XPT2046_Coordinate *pDisplayCoordinate) {
+	uint8_t match = (constraints[0] <= pDisplayCoordinate->x
+			&& constraints[1] >= pDisplayCoordinate->x
+			&& constraints[2] <= pDisplayCoordinate->y
+			&& constraints[3] >= pDisplayCoordinate->y);
+	return match;
 }
 
-void Render(uint8_t* mode_new, uint8_t* render_status,unsigned char *petStats){
+void Render(uint8_t *mode_new, uint8_t *render_status,
+		const unsigned char *petStats, int last) {
 	//Not Render if done
-	if(*render_status==1) return;
+	if (*render_status == 1)
+		return;
 
-	//Mode 0 = Home, Mode 1 = Drink Water, Mode 2 = Toggle Dark Mode, Mode 3 = Pet
-	switch(*mode_new){
-		case(0):
-			UI_Home();
-			break;
-		case(1):
-			UI_Drink_Water();
-			*mode_new = 0;
-			break;
-		case(2):
-			LCD_Darkmode_Toggle(petStats);
-			*mode_new = 0;
-			break;
-
+	//Mode 0 = Home, Mode 1 = Drink Water, Mode 2 = Toggle Dark Mode, Mode 3 = Stats,
+	switch (*mode_new) {
+	case (0):
+		UI_Home();
+		break;
+	case (1):
+		UI_Drink_Water();
+		*mode_new = 0;
+		break;
+	case (2):
+		LCD_Darkmode_Toggle(petStats);
+		*mode_new = 0;
+		break;
+	case (3):
+		UI_Stats(last);
+		*mode_new = 3;
 	}
 	*render_status = 1;
 }
 
-void UI_Drink_Water(){
+void UI_Drink_Water() {
 	LCD_Clear(0, 0, 240, 320);
 
 	LCD_DrawString(10, 150, "Drinked a glass of water");
@@ -45,8 +52,8 @@ void UI_Drink_Water(){
 
 }
 
-void UI_Home(){
-	LCD_Clear ( 0, 0, 240, 320);
+void UI_Home() {
+	LCD_Clear(0, 0, 240, 320);
 	LCD_DrawString(2, 10, "Config");
 	LCD_DrawString(200, 10, "Stats");
 	LCD_DrawString(40, 220, "Set");
@@ -59,7 +66,7 @@ void UI_Home(){
 
 }
 
-void UI_Home_Display_Date(uint16_t year, uint8_t month, uint8_t day){
+void UI_Home_Display_Date(uint16_t year, uint8_t month, uint8_t day) {
 	char str[10];
 
 	//Draw Year
@@ -75,7 +82,7 @@ void UI_Home_Display_Date(uint16_t year, uint8_t month, uint8_t day){
 	LCD_DrawString(145, 10, str);
 }
 
-void UI_Home_Display_Time(uint8_t hour, uint8_t minute, uint8_t second){
+void UI_Home_Display_Time(uint8_t hour, uint8_t minute, uint8_t second) {
 	char str[10];
 
 	//Draw Year
@@ -91,31 +98,56 @@ void UI_Home_Display_Time(uint8_t hour, uint8_t minute, uint8_t second){
 	LCD_DrawString(135, 30, str);
 }
 
-void UI_Home_Display_Pet(uint16_t StartX, uint16_t StartY,unsigned char *pic){
+void UI_Home_Display_Pet(uint16_t StartX, uint16_t StartY, unsigned char *pic) {
 
-	LCD_DrawPicture(StartX,StartY,pic);
+	LCD_DrawPicture(StartX, StartY, pic);
 }
 
-void UI_Home_Display_DHT11(DHT11_datastruct *ds){
+void UI_Home_Display_DHT11(DHT11_datastruct *ds) {
 	LCD_DHT11(ds);
 	char Stemp[10];
 	char Shum[10];
 	sprintf(Stemp, "%02i", ds->temp_int);
-	LCD_DrawString(10,50,"T");
-	LCD_DrawString(0,70,Stemp);
-	if (LCD_GetPointPixel(240,320) == 0x000000){
-		LCD_DrawCircle(17,72,2, WHITE);
+	LCD_DrawString(10, 50, "T");
+	LCD_DrawString(0, 70, Stemp);
+	if (LCD_GetPointPixel(240, 320) == 0x000000) {
+		LCD_DrawCircle(17, 72, 2, WHITE);
+	} else {
+		LCD_DrawCircle(17, 72, 2, BLACK);
 	}
-	else{
-		LCD_DrawCircle(17,72,2, BLACK);
-	}
-	LCD_DrawString(20,70,"C");
+	LCD_DrawString(20, 70, "C");
 	sprintf(Shum, "%03i", ds->humid_int);
-	LCD_DrawString(220,50,"H");
-	LCD_DrawString(205,70,Shum);
-	LCD_DrawString(230,70,"%");
+	LCD_DrawString(220, 50, "H");
+	LCD_DrawString(205, 70, Shum);
+	LCD_DrawString(230, 70, "%");
 
 }
 
-
-
+void UI_Stats(int last) {
+	LCD_Clear(0, 0, 240, 320);
+	LCD_DrawString(40, 50, "Time since last drink");
+	char timestr[15];
+	TimeStamp real_time;
+	RTC_Get();
+	get_TimeStamp(&real_time);
+	int now = real_time.rday * 86400 + real_time.rhour * 3600
+			+ real_time.rmin * 60 + real_time.rsec;
+	int seconds = now - last;
+	sprintf(timestr, "%02d : %02d : %02d", seconds / 3600,
+				(seconds % 3600) / 60, seconds % 60);
+	LCD_DrawString(75, 85, timestr);
+	LCD_DrawString(80, 125, "Next drink");
+	LCD_DrawString(70, 200, "Back to home");
+}
+void UI_Stats_Update(int last) {
+	char timestr[15];
+	TimeStamp real_time;
+	RTC_Get();
+	get_TimeStamp(&real_time);
+	int now = real_time.rday * 86400 + real_time.rhour * 3600
+			+ real_time.rmin * 60 + real_time.rsec;
+	int seconds = now - last;
+	sprintf(timestr, "%02d : %02d : %02d", seconds / 3600,
+			(seconds % 3600) / 60, seconds % 60);
+	LCD_DrawString(75, 85, timestr);
+}

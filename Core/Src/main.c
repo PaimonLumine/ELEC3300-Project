@@ -136,6 +136,10 @@ int main(void)
 	DHT11_datastruct DHT11_data; // read data by calling -  DHT11_ReadData(&DHT11_data);
 	strType_XPT2046_Coordinate Coordinate; //Coordinate of LCD
 	TimeStamp real_time; //read real time data by calling - get_TimeStamp(&real_time);
+	int lastdrink;
+	RTC_Get();
+	get_TimeStamp(&real_time);
+	lastdrink = real_time.rday*86400 + real_time.rhour * 3600 + real_time.rmin *60 + real_time.rsec;
 
 	//Flow control of UI
 	uint8_t mode = 0; //Current Mode: Mode 0 = Home, Mode 1 = Drink Water, Mode 3 = Pet
@@ -165,6 +169,10 @@ int main(void)
 		  UI_Home_Display_Pet(60,70,petStats);
 		  UI_Home_Display_DHT11(&DHT11_data);
 	  }
+	  else if (mode == 3){
+		  RTC_Get();
+		  UI_Stats_Update(lastdrink);
+	  }
 	  get_TimeStamp(&real_time);
 	  if (petStats != sleep){
 		  if (DHT11_data.temp_int > 27){
@@ -184,8 +192,12 @@ int main(void)
 			  if(Check_touchkey(&home_drink_water,&Coordinate)) {mode_new = 1; break;}
 			  if(Check_touchkey(&home_dark_mode,&Coordinate)) {mode_new = 2; break;}
 			  if(Check_touchkey(&home_pet,&Coordinate)) {mode_new = 0;	if (petStats != sleep) {petStats = happy1;}; break;}
+			  if(Check_touchkey(&home_stats,&Coordinate)) {mode_new = 3; break;}
 		  }
 		  //Other Buttons In Other Screen
+		  else if (mode==3){
+			  if(Check_touchkey(&stats_home,&Coordinate)) {mode_new = 0; break;}
+		  		  }
 
 	  } while (0);
 
@@ -205,8 +217,7 @@ int main(void)
 		  }
 	  }
 	  //Render LCD If Enter New Mode
-	  Render(&mode_new, &render_done,petStats);
-		
+	  Render(&mode_new, &render_done,petStats,lastdrink);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
