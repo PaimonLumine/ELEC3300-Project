@@ -23,7 +23,7 @@
 #include "stm32f1xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "dht11.h"
 #include "xpt2046.h"
 
 /* USER CODE END Includes */
@@ -60,6 +60,7 @@
 
 /* External variables --------------------------------------------------------*/
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim5;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -237,7 +238,6 @@ void TIM3_IRQHandler(void)
 
 
 		/* End of Line */
-		extern TIM_HandleTypeDef htim3;
 		HAL_TIM_Base_Stop(&htim3);
 		HAL_TIM_Base_Stop_IT(&htim3);
 		start_counting = 0;
@@ -247,6 +247,21 @@ void TIM3_IRQHandler(void)
   /* USER CODE BEGIN TIM3_IRQn 1 */
 
   /* USER CODE END TIM3_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM5 global interrupt.
+  */
+void TIM5_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM5_IRQn 0 */
+	extern uint8_t DHT11_SCHEDULE_FLAG;
+	DHT11_SCHEDULE_FLAG = 1;
+  /* USER CODE END TIM5_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim5);
+  /* USER CODE BEGIN TIM5_IRQn 1 */
+
+  /* USER CODE END TIM5_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

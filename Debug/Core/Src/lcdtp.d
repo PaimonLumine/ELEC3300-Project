@@ -26,7 +26,8 @@ Core/Src/lcdtp.o: ../Core/Src/lcdtp.c ../Core/Inc/lcdtp.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/ascii.h ../Core/Inc/pet.h
+ ../Core/Inc/dht11.h ../Core/Inc/printf.h ../Core/Inc/ascii.h \
+ ../Core/Inc/pet.h
 ../Core/Inc/lcdtp.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
 ../Core/Inc/stm32f1xx_hal_conf.h:
@@ -55,5 +56,7 @@ Core/Src/lcdtp.o: ../Core/Src/lcdtp.c ../Core/Inc/lcdtp.h \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
+../Core/Inc/dht11.h:
+../Core/Inc/printf.h:
 ../Core/Inc/ascii.h:
 ../Core/Inc/pet.h:

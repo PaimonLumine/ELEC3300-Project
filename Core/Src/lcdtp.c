@@ -9,7 +9,7 @@ uint16_t	LCD_Read_PixelData      ( void );
 
 
 void Delay ( __IO uint32_t nCount ){  for ( ; nCount != 0; nCount -- );}
-int darkmode_toggle = 0;
+uint8_t darkmode_toggle = 0;
 
 
 void LCD_INIT ( void )
@@ -613,7 +613,8 @@ void LCD_GramScan ( uint8_t ucOption )
 	
 }
 
-void LCD_Darkmode_Toggle(unsigned char *petStats){
+void LCD_Darkmode_Toggle(){
+	extern unsigned char *petStats;
 	if (!darkmode_toggle) {
 		darkmode_toggle = 1;
 		petStats = sleep;

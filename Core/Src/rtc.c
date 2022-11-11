@@ -122,7 +122,14 @@ uint8_t Is_Leap_Year(uint16_t year){
 	}else return 0;
 }
 
+uint32_t RTC_raw(){
+	uint32_t time;
+	time=RTC->CNTH;
+	time<<=16;
+	time+=RTC->CNTL;
 
+	return time;
+}
 
 
 void get_TimeStamp(TimeStamp* t){
