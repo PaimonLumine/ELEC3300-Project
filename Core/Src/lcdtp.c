@@ -632,7 +632,7 @@ void LCD_DrawPicture(uint16_t StartX, uint16_t StartY,unsigned char *pic) {
 		x = ((uint16_t) (pic[2] << 8) + pic[3]) - 1;	  	//get width
 		y = ((uint16_t) (pic[4] << 8) + pic[5]) - 1;	  	//get height
 
-		LCD_OpenWindow ( StartX, StartY, 120,120 );
+		LCD_OpenWindow ( StartX, StartY, 120,120);
 		//LCD_FillColor ( StartX*StartY ,0x01010);
 		LCD_Write_Cmd(CMD_SetPixel);					//fillcolor
 		len = 2 * ((uint16_t) (pic[2] << 8) + pic[3])

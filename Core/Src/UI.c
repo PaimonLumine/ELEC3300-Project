@@ -55,13 +55,13 @@ void UI_Drink_Water() {
 
 void UI_Home() {
 
-	extern const unsigned char * petStats;
+	extern const unsigned char *petStats;
 	UI_Home_Display_Button();
-	UI_Home_Display_Pet(60,70,petStats);
+	UI_Home_Display_Pet(60, 70, petStats);
 	UI_Home_Display_DHT11();
 }
 
-void UI_Home_Display_Button(){
+void UI_Home_Display_Button() {
 	LCD_Clear(0, 0, 240, 320);
 	LCD_DrawString(2, 10, "Config");
 	LCD_DrawString(200, 10, "Stats");
@@ -144,7 +144,8 @@ void UI_Stats_Update() {
 	extern uint32_t lastupdate_raw, lastdrink_raw;
 	uint32_t realtime_raw = RTC_raw();
 
-	if(realtime_raw == lastupdate_raw) return;
+	if (realtime_raw == lastupdate_raw)
+		return;
 	uint32_t time_diff = realtime_raw - lastdrink_raw;
 
 	//Update New Last Drink
@@ -154,4 +155,26 @@ void UI_Stats_Update() {
 	sprintf(timestr, "%02d : %02d : %02d", time_diff / 3600,
 			(time_diff % 3600) / 60, time_diff % 60);
 	LCD_DrawString(75, 85, timestr);
+
+	//Update next drink
+	extern uint32_t next; //default value
+	extern DHT11_datastruct DHT11_data;
+	extern uint32_t tilnext; // time till next drink
+	double humid = DHT11_data.humid_int;
+	double temp = DHT11_data.temp_int;
+	if (next == 9999) { //Initialize
+		next = 2400 * (1 + (humid / 100)); //humidity
+		if (temp > 26) {
+			next = next / (1 + (temp - 26) / 10); //temperature
+		}
+	}
+	tilnext = next - time_diff;
+	if (tilnext < 0) {
+		tilnext = 0;
+	}
+
+	sprintf(timestr, "%02d : %02d : %02d", tilnext / 3600,
+			(tilnext % 3600) / 60, tilnext % 60);
+	LCD_DrawString(75, 155, timestr);
+
 }

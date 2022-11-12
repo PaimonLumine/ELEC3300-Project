@@ -92,7 +92,8 @@ DHT11_datastruct DHT11_data = {0}; // read data by calling -  DHT11_ReadData(&DH
 strType_XPT2046_Coordinate Coordinate = {0}; //Coordinate of LCD
 TimeStamp real_time = {0}; //read real time data by calling - get_TimeStamp(&real_time);
 uint32_t lastupdate_raw, lastdrink_raw = 0;
-
+uint32_t next = 9999; //Next drink schedule time
+uint32_t tilnext = 0;// time till next drink
 /*
  * Status Variables
  * petStats -> Current Image Of Pet
@@ -155,6 +156,7 @@ int main(void)
 	uint8_t mode_new = 0; //To Determine Whether A Mode is Updated
 	uint8_t render_done=0;//Set To 1 Whenever Screen Need to Update
 	uint8_t pet_update=0; //Set To 1 Whenever Pet Image Need to Update
+
 
 	//Calibration of TouchPad
 	while( ! XPT2046_Touch_Calibrate () );
