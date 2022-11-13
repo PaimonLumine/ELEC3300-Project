@@ -93,9 +93,12 @@ static void MX_TIM5_Init(void);
 DHT11_datastruct DHT11_data = {0}; // read data by calling -  DHT11_ReadData(&DHT11_data);
 strType_XPT2046_Coordinate Coordinate = {0}; //Coordinate of LCD
 TimeStamp real_time = {0}; //read real time data by calling - get_TimeStamp(&real_time);
-uint32_t lastupdate_raw, lastdrink_raw = 0;
+uint32_t lastupdate_raw,  lastdrink_raw,lastexer_raw = 0;
 uint32_t next = 9999; //Next drink schedule time
-uint32_t tilnext = 0;// time till next drink
+int tilnext = 0; // time till next drink
+uint32_t exertime = 0;
+uint32_t exertimer = 0;
+int tilexer = 0;
 /*
  * Status Variables
  * petStats -> Current Image Of Pet
@@ -196,6 +199,9 @@ int main(void)
 		  RTC_Get();
 		  UI_Stats_Update();
 	  }
+	  else if (mode == 6){
+	  		  UI_Set_Update();
+	  	  }
 	  get_TimeStamp(&real_time);
 	  if (petStats != sleep1 && mode==0){
 		  if (DHT11_data.temp_int > 27){
@@ -220,6 +226,10 @@ int main(void)
 			  if(Check_touchkey(&home_pet,&Coordinate)) {pet_update = 1;	if (petStats != sleep1) {petStats = happy1;}; break;}
 			  if(Check_touchkey(&home_stats,&Coordinate)) {mode_new = 3; break;}
 			  if(Check_touchkey(&home_config,&Coordinate)) {mode_new = 4; break;}
+			  if (Check_touchkey(&home_set, &Coordinate)) {
+			  					mode_new = 6;
+			  					break;
+			  				}
 		  }
 		  //Other Buttons In Other Screen
 		  else if (mode==3){//Statistics
@@ -230,6 +240,42 @@ int main(void)
 		  }else if (mode==5){
 			  if(Check_touchkey(&time_set_back,&Coordinate)) {mode_new = 4; USART_READ_FLAG = 0; break;}
 		  }
+		  else if (mode==6){
+			  if (Check_touchkey(&stats_home, &Coordinate)) {
+			  					mode_new = 0;
+			  					break;
+			  				}
+			  				if (Check_touchkey(&plus_hour, &Coordinate)) {
+			  					exertime += 3600;
+			  					HAL_Delay(100);
+			  					break;
+			  				} else if (Check_touchkey(&minus_hour, &Coordinate)) {
+			  					if (exertime > 3600) {
+			  						exertime -= 3600;
+			  					} else {
+			  						exertime = 0;
+			  					}
+			  					HAL_Delay(100);
+			  					break;
+			  				} else if (Check_touchkey(&plus_min, &Coordinate)) {
+			  					exertime += 60;
+			  					HAL_Delay(100);
+			  					break;
+			  				} else if (Check_touchkey(&minus_min, &Coordinate)) {
+			  					if (exertime > 60) {
+			  						exertime -= 60;
+			  					} else {
+			  						exertime = 0;
+			  					}
+			  					HAL_Delay(100);
+			  					break;
+			  				} else if (Check_touchkey(&set_set, &Coordinate)) {
+			  					exertimer = exertime;
+			  					lastexer_raw = RTC_raw();
+			  					HAL_Delay(100);
+			  					break;
+			  				}
+		  		  }
 
 	  } while (0);
 

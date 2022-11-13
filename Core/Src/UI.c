@@ -38,6 +38,9 @@ void Render(uint8_t *mode_new, uint8_t *render_status,
 		break;
 	case (5):
 		UI_Time_set();
+		break;
+	case (6):
+		UI_Set();
 	}
 	*render_status = 1;
 }
@@ -152,10 +155,11 @@ void UI_Stats() {
 	UI_Stats_Update();
 	LCD_DrawString(80, 125, "Next drink");
 	//TODO: Time Of Next Water Drinking Event
-	LCD_DrawString(70, 200, "Back to home");
+	LCD_DrawString(70, 190, "Exercise Timer");
+	LCD_DrawString(70, 280, "Back to home");
 }
 void UI_Stats_Update() {
-	extern uint32_t lastupdate_raw, lastdrink_raw;
+	extern uint32_t lastupdate_raw, lastdrink_raw,lastexer_raw;
 	uint32_t realtime_raw = RTC_raw();
 
 	if (realtime_raw == lastupdate_raw)
@@ -173,7 +177,10 @@ void UI_Stats_Update() {
 	//Update next drink
 	extern uint32_t next; //default value
 	extern DHT11_datastruct DHT11_data;
-	extern uint32_t tilnext; // time till next drink
+	extern int tilnext; // time till next drink
+	extern uint32_t exertimer;
+	extern int tilexer;
+
 	double humid = DHT11_data.humid_int;
 	double temp = DHT11_data.temp_int;
 	if (next == 9999) { //Initialize
@@ -191,6 +198,34 @@ void UI_Stats_Update() {
 			(tilnext % 3600) / 60, tilnext % 60);
 	LCD_DrawString(75, 155, timestr);
 
+	time_diff = realtime_raw - lastexer_raw;
+	tilexer = exertimer - time_diff;
+	if (tilexer < 0) {
+			tilexer = 0;
+		}
+	sprintf(timestr, "%02d : %02d : %02d", tilexer / 3600,
+				(tilexer % 3600) / 60, tilexer % 60);
+	LCD_DrawString(75, 205, timestr);
+}
+
+void UI_Set() {
+	LCD_Clear(0, 0, 240, 320);
+	extern exertime;
+	LCD_DrawString(80, 50, "Hour");
+	LCD_DrawString(140, 50, "Minute");
+	LCD_DrawString(80, 90, " +       + ");
+	char time[16];
+	sprintf(time, "%02d : %02d", exertime / 3600, (exertime % 3600) / 60);
+	LCD_DrawString(90, 130, time);
+	LCD_DrawString(80, 170, " -       -");
+	LCD_DrawString(100, 240, "Set");
+	LCD_DrawString(70, 280, "Back to home");
+}
+void UI_Set_Update() {
+	extern exertime;
+	char time[16];
+	sprintf(time, "%02d : %02d", exertime / 3600, (exertime % 3600) / 60);
+	LCD_DrawString(90, 130, time);
 }
 
 void UI_Config(){

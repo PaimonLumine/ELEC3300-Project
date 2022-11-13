@@ -23,4 +23,6 @@ void UI_Stats();
 void UI_Stats_Update();
 void UI_Config();
 void UI_Time_set();
+void UI_Set();
+void UI_Set_Update();
 #endif /* INC_UI_H_ */
