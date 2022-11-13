@@ -60,6 +60,8 @@ UART_HandleTypeDef huart1;
 
 SRAM_HandleTypeDef hsram1;
 
+uint8_t time_hour, time_min, time_sec;
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -101,6 +103,9 @@ uint32_t tilnext = 0;// time till next drink
  */
 const unsigned char * petStats = normal;
 uint8_t DHT11_SCHEDULE_FLAG = 1;
+uint8_t USART_READ_FLAG = 0;
+
+char USART_DATE_BUFFER[15];
 /* USER CODE END 0 */
 
 /**
@@ -192,13 +197,13 @@ int main(void)
 		  UI_Stats_Update();
 	  }
 	  get_TimeStamp(&real_time);
-	  if (petStats != sleep && mode==0){
+	  if (petStats != sleep1 && mode==0){
 		  if (DHT11_data.temp_int > 27){
-			  petStats = hot;
+			  petStats = hot1;
 			  pet_update = 1;
 		  }
 		  else if (DHT11_data.temp_int < 24){
-			  petStats = cold;
+			  petStats = cold1;
 			  pet_update = 1;
 		  }
 		  else {
@@ -212,13 +217,19 @@ int main(void)
 		  if(mode==0){
 			  if(Check_touchkey(&home_drink_water,&Coordinate)) {mode_new = 1; break;}
 			  if(Check_touchkey(&home_dark_mode,&Coordinate)) {mode_new = 2; break;}
-			  if(Check_touchkey(&home_pet,&Coordinate)) {pet_update = 1;	if (petStats != sleep) {petStats = happy1;}; break;}
+			  if(Check_touchkey(&home_pet,&Coordinate)) {pet_update = 1;	if (petStats != sleep1) {petStats = happy1;}; break;}
 			  if(Check_touchkey(&home_stats,&Coordinate)) {mode_new = 3; break;}
+			  if(Check_touchkey(&home_config,&Coordinate)) {mode_new = 4; break;}
 		  }
 		  //Other Buttons In Other Screen
-		  else if (mode==3){
+		  else if (mode==3){//Statistics
 			  if(Check_touchkey(&stats_home,&Coordinate)) {mode_new = 0; break;}
-		  		  }
+		  }else if (mode==4){//Configuration
+			  if(Check_touchkey(&config_home,&Coordinate)) {mode_new = 0; break;}
+			  if(Check_touchkey(&config_set_time,&Coordinate)) {mode_new = 5; USART_READ_FLAG = 1; break;}
+		  }else if (mode==5){
+			  if(Check_touchkey(&time_set_back,&Coordinate)) {mode_new = 4; USART_READ_FLAG = 0; break;}
+		  }
 
 	  } while (0);
 
@@ -242,6 +253,39 @@ int main(void)
 		  DHT11_ReadData(&DHT11_data);
 		  DHT11_SCHEDULE_FLAG = 0;
 		  if(mode==0) UI_Home_Display_DHT11();
+	  }
+
+	  //Read Buffer when flag on
+	  if(USART_READ_FLAG){
+
+		  uint8_t valid_input = HAL_UART_Receive(&huart1,USART_DATE_BUFFER,15,100)==HAL_OK;
+		  if(valid_input){//Check If data is Numeric
+			  for(int i=0; i<14; ++i){
+				  uint8_t int_value = USART_DATE_BUFFER[i]  - '0';
+				  if(!(int_value >= 0 && int_value <= 9)){valid_input = 0; break;}
+			  }
+		  }
+		  if(!valid_input){//Invalid Input
+			  LCD_DrawString(20, 100, "Waiting For USART Response");
+			  LCD_DrawString(20, 130, "(yyyymmddhhmmss)");
+		  }
+		  else{//Update Date Time
+			  char* t = USART_DATE_BUFFER;
+			  uint16_t dt[6];//yearmonth, day, hour, min, sec
+			  sscanf(t, "%04d%02d%02d%02d%02d%02d", &dt[0], &dt[1],&dt[2],&dt[3],&dt[4],&dt[5]);
+
+
+			  //Update RTC Success
+			  if(RTC_Set(dt[0],dt[1],dt[2],dt[3],dt[4],dt[5])==0){
+
+				  //Update Flag And UI
+				  USART_READ_FLAG = 0;
+				  LCD_Clear(0, 100, 250,150);
+				  LCD_DrawString(30, 100, "Done...");
+
+	  	  	  }
+		  }
+
 	  }
 
 	  //Render LCD If Enter New Mode

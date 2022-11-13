@@ -23,4 +23,4 @@
 ../Core/Src/lcdtp.c:515:6:LCD_GramScan	16	static
 ../Core/Src/lcdtp.c:616:6:LCD_Darkmode_Toggle	4	static
 ../Core/Src/lcdtp.c:628:6:LCD_DrawPicture	32	static
-../Core/Src/lcdtp.c:648:6:LCD_DHT11	16	static
+../Core/Src/lcdtp.c:651:6:LCD_DHT11	16	static
