@@ -1,0 +1,4 @@
+../Core/Src/buzzer.c:9:6:Buzzer_INIT	8	static
+../Core/Src/buzzer.c:13:6:Beep_start	40	static
+../Core/Src/buzzer.c:36:6:Beep_stop	8	static
+../Core/Src/buzzer.c:41:6:Beep_set	4	static
