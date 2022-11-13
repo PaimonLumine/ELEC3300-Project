@@ -1,7 +1,7 @@
 #include "UI.h"
 #include "lcdtp.h"
 #include "rtc.h"
-
+#include "pet.h"
 uint8_t Check_touchkey(const int *constraints,
 		strType_XPT2046_Coordinate *pDisplayCoordinate) {
 	uint8_t match = (constraints[0] <= pDisplayCoordinate->x
@@ -32,23 +32,37 @@ void Render(uint8_t *mode_new, uint8_t *render_status,
 		break;
 	case (3):
 		UI_Stats();
-		*mode_new = 3;
+		break;
+	case (4):
+		UI_Config();
+		break;
+	case (5):
+		UI_Time_set();
 	}
 	*render_status = 1;
 }
 
 void UI_Drink_Water() {
 	LCD_Clear(0, 0, 240, 320);
-
-	LCD_DrawString(10, 150, "Drinked a glass of water");
+	extern uint8_t darkmode_toggle;
+	LCD_DrawString(10, 220, "Drinked a glass of water");
 	LCD_DrawString(10, 250, "Return to home in 2s");
+	if(!darkmode_toggle) UI_Home_Display_Pet(60,70,water1);
+	else UI_Home_Display_Pet(60,70,water1_night);
 	HAL_Delay(1000);
+
 	LCD_Clear(10, 250, 240, 320);
 	LCD_DrawString(10, 250, "Return to home in 1s");
+	if(!darkmode_toggle) UI_Home_Display_Pet(60,70,water2);
+	else UI_Home_Display_Pet(60,70,water2_night);
 	HAL_Delay(1000);
+
 	LCD_Clear(10, 250, 240, 320);
 	LCD_DrawString(10, 250, "Return to home in 0s");
+	if(!darkmode_toggle) UI_Home_Display_Pet(60,70,water3);
+	else UI_Home_Display_Pet(60,70,water3_night);
 	HAL_Delay(1000);
+
 	extern uint32_t lastdrink_raw;
 	lastdrink_raw = RTC_raw();
 }
@@ -93,11 +107,11 @@ void UI_Home_Display_Date(uint16_t year, uint8_t month, uint8_t day) {
 void UI_Home_Display_Time(uint8_t hour, uint8_t minute, uint8_t second) {
 	char str[10];
 
-	//Draw Year
+	//Draw Hour
 	sprintf(str, "%02i", hour);
 	LCD_DrawString(95, 30, str);
 
-	//Draw Month
+	//Draw Minute
 	sprintf(str, "%02i", minute);
 	LCD_DrawString(115, 30, str);
 
@@ -177,4 +191,18 @@ void UI_Stats_Update() {
 			(tilnext % 3600) / 60, tilnext % 60);
 	LCD_DrawString(75, 155, timestr);
 
+}
+
+void UI_Config(){
+	LCD_Clear(0, 0, 240, 320);
+	LCD_DrawString(40, 50, "- Set Time");
+	LCD_DrawString(10, 280, "Back");
+}
+
+void UI_Time_set(){
+	LCD_Clear(0, 0, 240, 320);
+	LCD_DrawString(90, 50, "Set Time");
+	LCD_DrawString(10, 280, "Back");
+	//Handle In Main
+	printf("Pleas Input Date Time: yyyymmddhhmmss");
 }

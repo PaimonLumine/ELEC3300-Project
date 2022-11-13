@@ -21,4 +21,6 @@ void UI_Home_Display_Pet(uint16_t StartX, uint16_t StartY,unsigned char *pic);
 void UI_Home_Display_DHT11();
 void UI_Stats();
 void UI_Stats_Update();
+void UI_Config();
+void UI_Time_set();
 #endif /* INC_UI_H_ */

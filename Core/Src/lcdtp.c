@@ -617,7 +617,7 @@ void LCD_Darkmode_Toggle(){
 	extern unsigned char *petStats;
 	if (!darkmode_toggle) {
 		darkmode_toggle = 1;
-		petStats = sleep;
+		petStats = sleep1;
 	}
 	else {
 		darkmode_toggle = 0;

@@ -138,6 +138,7 @@ void get_TimeStamp(TimeStamp* t){
 	 */
 	t->ryear = ryear;
 	t->rmon = rmon;
+	t->rday = rday;
 	t->rhour = rhour;
 	t->rmin = rmin;
 	t->rsec = rsec;
