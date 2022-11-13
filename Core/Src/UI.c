@@ -1,7 +1,7 @@
 #include "UI.h"
 #include "lcdtp.h"
 #include "rtc.h"
-
+#include "pet.h"
 uint8_t Check_touchkey(const int *constraints,
 		strType_XPT2046_Coordinate *pDisplayCoordinate) {
 	uint8_t match = (constraints[0] <= pDisplayCoordinate->x
@@ -44,16 +44,25 @@ void Render(uint8_t *mode_new, uint8_t *render_status,
 
 void UI_Drink_Water() {
 	LCD_Clear(0, 0, 240, 320);
-
-	LCD_DrawString(10, 150, "Drinked a glass of water");
+	extern uint8_t darkmode_toggle;
+	LCD_DrawString(10, 220, "Drinked a glass of water");
 	LCD_DrawString(10, 250, "Return to home in 2s");
+	if(!darkmode_toggle) UI_Home_Display_Pet(60,70,water1);
+	else UI_Home_Display_Pet(60,70,water1_night);
 	HAL_Delay(1000);
+
 	LCD_Clear(10, 250, 240, 320);
 	LCD_DrawString(10, 250, "Return to home in 1s");
+	if(!darkmode_toggle) UI_Home_Display_Pet(60,70,water2);
+	else UI_Home_Display_Pet(60,70,water2_night);
 	HAL_Delay(1000);
+
 	LCD_Clear(10, 250, 240, 320);
 	LCD_DrawString(10, 250, "Return to home in 0s");
+	if(!darkmode_toggle) UI_Home_Display_Pet(60,70,water3);
+	else UI_Home_Display_Pet(60,70,water3_night);
 	HAL_Delay(1000);
+
 	extern uint32_t lastdrink_raw;
 	lastdrink_raw = RTC_raw();
 }

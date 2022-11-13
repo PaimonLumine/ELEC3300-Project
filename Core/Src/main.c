@@ -256,7 +256,7 @@ int main(void)
 	  }
 
 	  //Read Buffer when flag on
-	  if(USART_READ_FLAG){
+	  if(USART_READ_FLAG && mode==5){
 
 		  uint8_t valid_input = HAL_UART_Receive(&huart1,USART_DATE_BUFFER,15,100)==HAL_OK;
 		  if(valid_input){//Check If data is Numeric
