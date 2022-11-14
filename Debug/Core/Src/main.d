@@ -30,7 +30,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Inc/xpt2046.h ../Core/Inc/UI.h ../Core/Inc/xpt2046.h \
  ../Core/Inc/UI_buttons.h ../Core/Inc/rtc.h ../Core/Inc/dht11.h \
  ../Core/Inc/printf.h ../Core/Inc/timer.h ../Core/Inc/pet.h \
- ../Core/Inc/buzzer.h
+ ../Core/Inc/buzzer.h ../Core/Inc/alarm.h ../Core/Inc/buzzer.h \
+ ../Core/Inc/rtc.h ../Core/Inc/pet.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
 ../Core/Inc/stm32f1xx_hal_conf.h:
@@ -72,3 +73,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/timer.h:
 ../Core/Inc/pet.h:
 ../Core/Inc/buzzer.h:
+../Core/Inc/alarm.h:
+../Core/Inc/buzzer.h:
+../Core/Inc/rtc.h:
+../Core/Inc/pet.h:

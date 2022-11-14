@@ -1,0 +1,5 @@
+../Core/Src/alarm.c:13:6:alarm_update_next	16	static
+../Core/Src/alarm.c:29:6:alarm_update_last	8	static
+../Core/Src/alarm.c:34:6:alarm_times_up	4	static
+../Core/Src/alarm.c:43:6:alarm_release	8	static
+../Core/Src/alarm.c:51:6:debug_alarm_set	16	static

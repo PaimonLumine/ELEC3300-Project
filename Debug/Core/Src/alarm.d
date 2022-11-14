@@ -1,4 +1,4 @@
-Core/Src/UI.o: ../Core/Src/UI.c ../Core/Inc/UI.h ../Core/Inc/xpt2046.h \
+Core/Src/alarm.o: ../Core/Src/alarm.c ../Core/Inc/alarm.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h \
  ../Core/Inc/stm32f1xx_hal_conf.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h \
@@ -26,11 +26,9 @@ Core/Src/UI.o: ../Core/Src/UI.c ../Core/Inc/UI.h ../Core/Inc/xpt2046.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/dht11.h ../Core/Inc/printf.h ../Core/Inc/lcdtp.h \
- ../Core/Inc/rtc.h ../Core/Inc/pet.h ../Core/Inc/alarm.h \
- ../Core/Inc/buzzer.h ../Core/Inc/rtc.h ../Core/Inc/pet.h
-../Core/Inc/UI.h:
-../Core/Inc/xpt2046.h:
+ ../Core/Inc/buzzer.h ../Core/Inc/rtc.h ../Core/Inc/dht11.h \
+ ../Core/Inc/printf.h ../Core/Inc/pet.h
+../Core/Inc/alarm.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
 ../Core/Inc/stm32f1xx_hal_conf.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h:
@@ -58,12 +56,8 @@ Core/Src/UI.o: ../Core/Src/UI.c ../Core/Inc/UI.h ../Core/Inc/xpt2046.h \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
-../Core/Inc/dht11.h:
-../Core/Inc/printf.h:
-../Core/Inc/lcdtp.h:
-../Core/Inc/rtc.h:
-../Core/Inc/pet.h:
-../Core/Inc/alarm.h:
 ../Core/Inc/buzzer.h:
 ../Core/Inc/rtc.h:
+../Core/Inc/dht11.h:
+../Core/Inc/printf.h:
 ../Core/Inc/pet.h:

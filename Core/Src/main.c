@@ -33,6 +33,7 @@
 #include "timer.h"
 #include "pet.h"
 #include "buzzer.h"
+#include "alarm.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -94,12 +95,12 @@ static void MX_TIM1_Init(void);
 DHT11_datastruct DHT11_data = {0}; // read data by calling -  DHT11_ReadData(&DHT11_data);
 strType_XPT2046_Coordinate Coordinate = {0}; //Coordinate of LCD
 TimeStamp real_time = {0}; //read real time data by calling - get_TimeStamp(&real_time);
-uint32_t lastupdate_raw,  lastdrink_raw,lastexer_raw = 0;
-uint32_t next = 9999; //Next drink schedule time
+uint32_t lastupdate_raw,  lastdrink_raw = 0;
+uint32_t next = 0; //Next drink schedule time
 int tilnext = 0; // time till next drink
-uint32_t exertime = 0;
-uint32_t exertimer = 0;
-int tilexer = 0;
+uint32_t exertime = 0;//Time Set By User
+uint32_t exertimer = 0;//Target time of exercise alarm
+
 /*
  * Status Variables
  * petStats -> Current Image Of Pet
@@ -108,7 +109,8 @@ int tilexer = 0;
 const unsigned char * petStats = normal;
 uint8_t DHT11_SCHEDULE_FLAG = 1;
 uint8_t USART_READ_FLAG = 0;
-
+uint8_t ALARM_TIMES_UP_RENDER_FLAG = 0;
+uint8_t EXER_TIMER_SET_FLAG = 0;
 char USART_DATE_BUFFER[15];
 /* USER CODE END 0 */
 
@@ -160,7 +162,6 @@ int main(void)
 
 	RTC_Get();
 	get_TimeStamp(&real_time);
-	lastdrink_raw = RTC_raw();
 	//Flow control of UI
 	uint8_t mode = 0; //Current Mode: Mode 0 = Home, Mode 1 = Drink Water, Mode 3 = Pet
 	uint8_t mode_new = 0; //To Determine Whether A Mode is Updated
@@ -170,8 +171,9 @@ int main(void)
 
 	//Calibration of TouchPad
 	while( ! XPT2046_Touch_Calibrate () );
-	Beep_set(63999, 1124, 562);//2 Hz
-	Beep_start();
+	alarm_update_next();
+	alarm_update_last();
+	exertimer = RTC_raw();
 	DHT11_ReadData(&DHT11_data);
 
 	/*
@@ -207,7 +209,7 @@ int main(void)
 	  		  UI_Set_Update();
 	  	  }
 	  get_TimeStamp(&real_time);
-	  if (petStats != sleep1 && mode==0){
+	  if (petStats != sleep1 && mode==0 && next > RTC_raw()){
 		  if (DHT11_data.temp_int > 27){
 			  petStats = hot1;
 			  pet_update = 1;
@@ -225,7 +227,7 @@ int main(void)
 	  do {
 		  //Home Buttons
 		  if(mode==0){
-			  if(Check_touchkey(&home_drink_water,&Coordinate)) {mode_new = 1; break;}
+			  if(Check_touchkey(&home_drink_water,&Coordinate)) {alarm_release(); mode_new = 1; break;}
 			  if(Check_touchkey(&home_dark_mode,&Coordinate)) {mode_new = 2; break;}
 			  if(Check_touchkey(&home_pet,&Coordinate)) {pet_update = 1;	if (petStats != sleep1) {petStats = happy1;}; break;}
 			  if(Check_touchkey(&home_stats,&Coordinate)) {mode_new = 3; break;}
@@ -274,8 +276,8 @@ int main(void)
 			  					HAL_Delay(100);
 			  					break;
 			  				} else if (Check_touchkey(&set_set, &Coordinate)) {
-			  					exertimer = exertime;
-			  					lastexer_raw = RTC_raw();
+			  					exertimer = RTC_raw() + exertime;
+			  					EXER_TIMER_SET_FLAG = 1;
 			  					HAL_Delay(100);
 			  					break;
 			  				}
@@ -286,11 +288,22 @@ int main(void)
 	  //Reset Coordinates
 	  XPT2046_Reset_TouchPoint(&Coordinate);
 
+	  if(next<= RTC_raw()){ //Overriding Touchscreen Behaviour
+		  if(mode != 1) {
+			  if(!ALARM_TIMES_UP_RENDER_FLAG){
+				  Beep_set(63999, 1124, 562);//2 Hz
+				  Beep_start();
+				  pet_update = 1;
+				  mode_new = 0;
+			  }
+			  alarm_times_up();
+		  }
+	  }
+
 	  if(mode != mode_new){
 		  mode = mode_new;
 		  render_done = 0;
 	  }
-
 
 	  //Render Pet Image If Updated
 	  if(pet_update){
@@ -304,6 +317,8 @@ int main(void)
 		  DHT11_SCHEDULE_FLAG = 0;
 		  if(mode==0) UI_Home_Display_DHT11();
 	  }
+
+
 
 	  //Read Buffer when flag on
 	  if(USART_READ_FLAG && mode==5){
@@ -332,7 +347,8 @@ int main(void)
 				  USART_READ_FLAG = 0;
 				  LCD_Clear(0, 100, 250,150);
 				  LCD_DrawString(30, 100, "Done...");
-
+				  alarm_update_last();
+				  alarm_update_next();
 	  	  	  }
 		  }
 
@@ -744,6 +760,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : K2_Pin */
+  GPIO_InitStruct.Pin = K2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(K2_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pins : PB0 PB1 PB5 */
   GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_5;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -761,6 +783,9 @@ static void MX_GPIO_Init(void)
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 

@@ -2,6 +2,7 @@
 #include "lcdtp.h"
 #include "rtc.h"
 #include "pet.h"
+#include "alarm.h"
 uint8_t Check_touchkey(const int *constraints,
 		strType_XPT2046_Coordinate *pDisplayCoordinate) {
 	uint8_t match = (constraints[0] <= pDisplayCoordinate->x
@@ -66,8 +67,6 @@ void UI_Drink_Water() {
 	else UI_Home_Display_Pet(60,70,water3_night);
 	HAL_Delay(1000);
 
-	extern uint32_t lastdrink_raw;
-	lastdrink_raw = RTC_raw();
 }
 
 void UI_Home() {
@@ -159,7 +158,7 @@ void UI_Stats() {
 	LCD_DrawString(70, 280, "Back to home");
 }
 void UI_Stats_Update() {
-	extern uint32_t lastupdate_raw, lastdrink_raw,lastexer_raw;
+	extern uint32_t lastupdate_raw, lastdrink_raw;
 	uint32_t realtime_raw = RTC_raw();
 
 	if (realtime_raw == lastupdate_raw)
@@ -179,17 +178,9 @@ void UI_Stats_Update() {
 	extern DHT11_datastruct DHT11_data;
 	extern int tilnext; // time till next drink
 	extern uint32_t exertimer;
-	extern int tilexer;
+	extern uint8_t EXER_TIMER_SET_FLAG;
 
-	double humid = DHT11_data.humid_int;
-	double temp = DHT11_data.temp_int;
-	if (next == 9999) { //Initialize
-		next = 2400 * (1 + (humid / 100)); //humidity
-		if (temp > 26) {
-			next = next / (1 + (temp - 26) / 10); //temperature
-		}
-	}
-	tilnext = next - time_diff;
+	tilnext = next - realtime_raw;
 	if (tilnext < 0) {
 		tilnext = 0;
 	}
@@ -198,14 +189,19 @@ void UI_Stats_Update() {
 			(tilnext % 3600) / 60, tilnext % 60);
 	LCD_DrawString(75, 155, timestr);
 
-	time_diff = realtime_raw - lastexer_raw;
-	tilexer = exertimer - time_diff;
+	//tilexer: when will the clock ring next time
+	uint32_t tilexer = exertimer - realtime_raw;
 	if (tilexer < 0) {
 			tilexer = 0;
 		}
-	sprintf(timestr, "%02d : %02d : %02d", tilexer / 3600,
-				(tilexer % 3600) / 60, tilexer % 60);
-	LCD_DrawString(75, 205, timestr);
+	if(EXER_TIMER_SET_FLAG){
+		sprintf(timestr, "%02d : %02d : %02d", tilexer / 3600,
+					(tilexer % 3600) / 60, tilexer % 60);
+		LCD_DrawString(75, 205, timestr);
+	}else{//Timer not set
+		LCD_DrawString(75, 205,  "-- : -- : --");
+	}
+
 }
 
 void UI_Set() {
