@@ -190,7 +190,7 @@ void UI_Stats_Update() {
 	LCD_DrawString(75, 155, timestr);
 
 	//tilexer: when will the clock ring next time
-	uint32_t tilexer = exertimer - realtime_raw;
+	int tilexer = exertimer - realtime_raw;
 	if (tilexer < 0) {
 			tilexer = 0;
 		}
