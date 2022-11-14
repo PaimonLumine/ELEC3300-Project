@@ -62,6 +62,9 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define DHT11_Pin GPIO_PIN_6
 #define DHT11_GPIO_Port GPIOE
+#define K2_Pin GPIO_PIN_13
+#define K2_GPIO_Port GPIOC
+#define K2_EXTI_IRQn EXTI15_10_IRQn
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

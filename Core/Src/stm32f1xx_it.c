@@ -250,6 +250,27 @@ void TIM3_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles EXTI line[15:10] interrupts.
+  */
+void EXTI15_10_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI15_10_IRQn 0 */
+	if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_13) != RESET)
+	{
+		extern void debug_alarm_set();
+		debug_alarm_set();
+	__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_13);
+	HAL_GPIO_EXTI_Callback(GPIO_PIN_13);
+	}
+	/* USER
+  /* USER CODE END EXTI15_10_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
+  /* USER CODE BEGIN EXTI15_10_IRQn 1 */
+
+  /* USER CODE END EXTI15_10_IRQn 1 */
+}
+
+/**
   * @brief This function handles TIM5 global interrupt.
   */
 void TIM5_IRQHandler(void)
