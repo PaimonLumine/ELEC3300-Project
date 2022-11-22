@@ -615,9 +615,15 @@ void LCD_GramScan ( uint8_t ucOption )
 
 void LCD_Darkmode_Toggle(){
 	extern unsigned char *petStats;
+	extern int sec;
 	if (!darkmode_toggle) {
 		darkmode_toggle = 1;
-		petStats = sleep1;
+		if (sec % 2 == 0){
+			petStats = sleep1;
+		}
+		else if (sec % 2 == 1){
+			petStats = sleep2;
+		}
 	}
 	else {
 		darkmode_toggle = 0;

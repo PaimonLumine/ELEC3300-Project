@@ -16,7 +16,7 @@ extern const unsigned char cold1[28808];
 extern const unsigned char cold2[28808];
 extern const unsigned char sleep1[28808];
 extern const unsigned char sleep2[28808];
-extern const unsigned char sleep3[28808];
+//extern const unsigned char sleep3[28808];
 extern const unsigned char sleep_water[28808];
 extern const unsigned char water1[28808];
 extern const unsigned char water2[28808];

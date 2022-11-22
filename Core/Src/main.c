@@ -100,6 +100,7 @@ uint32_t next = 0; //Next drink schedule time
 int tilnext = 0; // time till next drink
 uint32_t exertime = 0;//Time Set By User
 uint32_t exertimer = 0;//Target time of exercise alarm
+int sec = 0;
 
 /*
  * Status Variables
@@ -162,6 +163,7 @@ int main(void)
 
 	RTC_Get();
 	get_TimeStamp(&real_time);
+	sec = real_time.rsec;
 	//Flow control of UI
 	uint8_t mode = 0; //Current Mode: Mode 0 = Home, Mode 1 = Drink Water, Mode 3 = Pet
 	uint8_t mode_new = 0; //To Determine Whether A Mode is Updated
@@ -209,13 +211,23 @@ int main(void)
 	  		  UI_Set_Update();
 	  	  }
 	  get_TimeStamp(&real_time);
-	  if (petStats != sleep1 && mode==0 && next > RTC_raw()){
+	  if (petStats != sleep1 && petStats != sleep2 && mode==0 && next > RTC_raw()){
 		  if (DHT11_data.temp_int > 27){
-			  petStats = hot1;
+			  if (real_time.rsec % 2 == 0){
+				  petStats = hot1;
+			  }
+			  else {
+				  petStats = hot2;
+			  }
 			  pet_update = 1;
 		  }
 		  else if (DHT11_data.temp_int < 24){
-			  petStats = cold1;
+			  if (real_time.rsec % 2 == 0){
+				  petStats = cold1;
+			  }
+			  else {
+				  petStats = cold2;
+			  }
 			  pet_update = 1;
 		  }
 		  else {
@@ -223,19 +235,35 @@ int main(void)
 			  pet_update = 1;
 		  }
 	  }
+	  if (petStats == sleep1 && sec %2 == 0){
+	  		  		petStats = sleep2;
+	  		  		pet_update = 1;
+	  		  }
+	  		  else if (petStats == sleep2 && sec %2 == 1){
+	  		  		petStats = sleep1;
+	  		  		pet_update = 1;
+	  		  }
 
 	  do {
 		  //Home Buttons
 		  if(mode==0){
 			  if(Check_touchkey(&home_drink_water,&Coordinate)) {alarm_release(); mode_new = 1; break;}
 			  if(Check_touchkey(&home_dark_mode,&Coordinate)) {mode_new = 2; break;}
-			  if(Check_touchkey(&home_pet,&Coordinate)) {pet_update = 1;	if (petStats != sleep1) {petStats = happy1;}; break;}
+			  if(Check_touchkey(&home_pet,&Coordinate)) {pet_update = 1;	if (petStats != sleep1 && petStats != sleep2  && petStats != sleep_water) {petStats = happy1;}; break;}
 			  if(Check_touchkey(&home_stats,&Coordinate)) {mode_new = 3; break;}
 			  if(Check_touchkey(&home_config,&Coordinate)) {mode_new = 4; break;}
 			  if (Check_touchkey(&home_set, &Coordinate)) {
 			  					mode_new = 6;
 			  					break;
 			  				}
+			  if (petStats == sleep1 && sec %2 == 0){
+			  		  		petStats = sleep2;
+			  		  		pet_update = 1;
+			  		  }
+			  else if (petStats == sleep2 && sec %2 == 1){
+			  		  		petStats = sleep1;
+			  		  		pet_update = 1;
+			  		  }
 		  }
 		  //Other Buttons In Other Screen
 		  else if (mode==3){//Statistics
@@ -282,6 +310,7 @@ int main(void)
 			  					break;
 			  				}
 		  		  }
+
 
 	  } while (0);
 
