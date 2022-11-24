@@ -211,6 +211,7 @@ int main(void)
 	  		  UI_Set_Update();
 	  	  }
 	  get_TimeStamp(&real_time);
+		sec = real_time.rsec;
 	  if (petStats != sleep1 && petStats != sleep2 && mode==0 && next > RTC_raw()){
 		  if (DHT11_data.temp_int > 27){
 			  if (real_time.rsec % 2 == 0){
@@ -235,15 +236,6 @@ int main(void)
 			  pet_update = 1;
 		  }
 	  }
-	  if (petStats == sleep1 && sec %2 == 0){
-	  		  		petStats = sleep2;
-	  		  		pet_update = 1;
-	  		  }
-	  		  else if (petStats == sleep2 && sec %2 == 1){
-	  		  		petStats = sleep1;
-	  		  		pet_update = 1;
-	  		  }
-
 	  do {
 		  //Home Buttons
 		  if(mode==0){
