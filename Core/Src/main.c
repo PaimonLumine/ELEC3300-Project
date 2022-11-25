@@ -52,6 +52,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+ADC_HandleTypeDef hadc1;
+
 RTC_HandleTypeDef hrtc;
 
 TIM_HandleTypeDef htim1;
@@ -77,6 +79,7 @@ static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -149,6 +152,7 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM5_Init();
   MX_TIM1_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
   	/*
@@ -160,7 +164,10 @@ int main(void)
 	RTC_Init(&hrtc);
 	macXPT2046_CS_DISABLE();
 	LCD_INIT();
-
+	  HAL_ADCEx_Calibration_Start(&hadc1);
+	  HAL_ADC_Start(&hadc1);
+	  HAL_ADC_PollForConversion(&hadc1, 1000);
+	  uint32_t value = HAL_ADC_GetValue(&hadc1);
 	RTC_Get();
 	get_TimeStamp(&real_time);
 	sec = real_time.rsec;
@@ -196,7 +203,8 @@ int main(void)
   {
 	  XPT2046_Get_TouchedPoint(&Coordinate,
 	  			&strXPT2046_TouchPara);
-
+	  HAL_ADC_Start(&hadc1);
+	  value = HAL_ADC_GetValue(&hadc1);
 	  //!!Only For UI that is changing every moment, Just For Testing, Need Refactoring Later
 	  if(mode==0) {
 		  RTC_Get();
@@ -241,6 +249,8 @@ int main(void)
 		  if(mode==0){
 			  if(Check_touchkey(&home_drink_water,&Coordinate)) {alarm_release(); mode_new = 1; break;}
 			  if(Check_touchkey(&home_dark_mode,&Coordinate)) {mode_new = 2; break;}
+			  if(value > 3000 && petStats != sleep1 && petStats != sleep2  && petStats != sleep_water){mode_new = 2; break;}
+			  if(value < 3000 && (petStats == sleep1 || petStats == sleep2  || petStats == sleep_water)){mode_new = 2; break;}
 			  if(Check_touchkey(&home_pet,&Coordinate)) {pet_update = 1;	if (petStats != sleep1 && petStats != sleep2  && petStats != sleep_water) {petStats = happy1;}; break;}
 			  if(Check_touchkey(&home_stats,&Coordinate)) {mode_new = 3; break;}
 			  if(Check_touchkey(&home_config,&Coordinate)) {mode_new = 4; break;}
@@ -423,12 +433,58 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC|RCC_PERIPHCLK_ADC;
   PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
+  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV6;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief ADC1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC1_Init(void)
+{
+
+  /* USER CODE BEGIN ADC1_Init 0 */
+
+  /* USER CODE END ADC1_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC1_Init 1 */
+
+  /* USER CODE END ADC1_Init 1 */
+  /** Common config
+  */
+  hadc1.Instance = ADC1;
+  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 1;
+  if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_12;
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_55CYCLES_5;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC1_Init 2 */
+
+  /* USER CODE END ADC1_Init 2 */
+
 }
 
 /**
