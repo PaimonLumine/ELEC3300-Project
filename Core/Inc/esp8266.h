@@ -24,11 +24,14 @@ RST                     PB9
 #define ESP8266_CH_PD_ENABLE()                     HAL_GPIO_WritePin(ESP8266_CH_PD_PORT,ESP8266_CH_PD_PIN,GPIO_PIN_SET)
 #define ESP8266_RST_ENABLE()                       HAL_GPIO_WritePin(ESP8266_RST_PORT,ESP8266_RST_PIN,GPIO_PIN_SET)
 
+#define ESP8266_CH_PD_DISABLE()                     HAL_GPIO_WritePin(ESP8266_CH_PD_PORT,ESP8266_CH_PD_PIN,GPIO_PIN_RESET)
+#define ESP8266_RST_DISABLE()                       HAL_GPIO_WritePin(ESP8266_RST_PORT,ESP8266_RST_PIN,GPIO_PIN_RESET)
+
+
 //functions
-extern UART_HandleTypeDef WifiUartHandle;
+extern UART_HandleTypeDef huart3;
 
-void ESP8266_GPIO_Config(void);
-void ESP8266_Init(void);
-
+void ESP8266_RESET(void);
+void esp8266_get_time();
 
 #endif
