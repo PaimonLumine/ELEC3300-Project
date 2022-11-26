@@ -226,14 +226,15 @@ void UI_Set_Update() {
 
 void UI_Config(){
 	LCD_Clear(0, 0, 240, 320);
-	LCD_DrawString(40, 50, "- Set Time");
+	LCD_DrawString(40, 50, "- Sync Time (Wifi)");
 	LCD_DrawString(10, 280, "Back");
 }
 
 void UI_Time_set(){
 	LCD_Clear(0, 0, 240, 320);
-	LCD_DrawString(90, 50, "Set Time");
+	LCD_DrawString(90, 50, "Sync Time (Wifi)");
 	LCD_DrawString(10, 280, "Back");
-	//Handle In Main
-	printf("Pleas Input Date Time: yyyymmddhhmmss");
+	//Handle In esp8266.c
+	LCD_Clear(0, 100, 250,150);
+	LCD_DrawString(20, 100, "Resetting...");
 }

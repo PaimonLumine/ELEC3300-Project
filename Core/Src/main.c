@@ -34,6 +34,9 @@
 #include "pet.h"
 #include "buzzer.h"
 #include "alarm.h"
+#include "esp8266.h"
+#include "bsp_usart.h"
+#include "ring_buffer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,6 +65,7 @@ TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim5;
 
 UART_HandleTypeDef huart1;
+UART_HandleTypeDef huart3;
 
 SRAM_HandleTypeDef hsram1;
 
@@ -80,6 +84,7 @@ static void MX_TIM3_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -105,6 +110,8 @@ uint32_t exertime = 0;//Time Set By User
 uint32_t exertimer = 0;//Target time of exercise alarm
 int sec = 0;
 
+const char* ssid = "WifiName";
+const char* wifi_password = "Password";
 /*
  * Status Variables
  * petStats -> Current Image Of Pet
@@ -153,6 +160,7 @@ int main(void)
   MX_TIM5_Init();
   MX_TIM1_Init();
   MX_ADC1_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
   	/*
@@ -160,14 +168,20 @@ int main(void)
   	 * rtc.c
   	 * XPT2046.c
   	 * LCD
+  	 * ADC (Photoresistor)
+  	 * ESP8266
   	 */
 	RTC_Init(&hrtc);
 	macXPT2046_CS_DISABLE();
 	LCD_INIT();
-	  HAL_ADCEx_Calibration_Start(&hadc1);
-	  HAL_ADC_Start(&hadc1);
-	  HAL_ADC_PollForConversion(&hadc1, 1000);
-	  uint32_t value = HAL_ADC_GetValue(&hadc1);
+	HAL_ADCEx_Calibration_Start(&hadc1);
+	HAL_ADC_Start(&hadc1);
+	HAL_ADC_PollForConversion(&hadc1, 1000);
+	uint32_t value = HAL_ADC_GetValue(&hadc1);
+	DEBUG_USART_Config();
+	extern uint8_t esp8266_get_time_flag;
+	esp8266_get_time_flag = 0;
+	Ringbuf_init();
 	RTC_Get();
 	get_TimeStamp(&real_time);
 	sec = real_time.rsec;
@@ -272,9 +286,9 @@ int main(void)
 			  if(Check_touchkey(&stats_home,&Coordinate)) {mode_new = 0; break;}
 		  }else if (mode==4){//Configuration
 			  if(Check_touchkey(&config_home,&Coordinate)) {mode_new = 0; break;}
-			  if(Check_touchkey(&config_set_time,&Coordinate)) {mode_new = 5; USART_READ_FLAG = 1; break;}
+			  if(Check_touchkey(&config_set_time,&Coordinate)) {mode_new = 5; USART_READ_FLAG = 1; esp8266_get_time_flag = 0; break;}
 		  }else if (mode==5){
-			  if(Check_touchkey(&time_set_back,&Coordinate)) {mode_new = 4; USART_READ_FLAG = 0; break;}
+			  if(Check_touchkey(&time_set_back,&Coordinate)) {mode_new = 4; USART_READ_FLAG = 0; esp8266_get_time_flag = -1;break;}
 		  }
 		  else if (mode==6){
 			  if (Check_touchkey(&stats_home, &Coordinate)) {
@@ -354,18 +368,9 @@ int main(void)
 	  //Read Buffer when flag on
 	  if(USART_READ_FLAG && mode==5){
 
-		  uint8_t valid_input = HAL_UART_Receive(&huart1,USART_DATE_BUFFER,15,100)==HAL_OK;
-		  if(valid_input){//Check If data is Numeric
-			  for(int i=0; i<14; ++i){
-				  uint8_t int_value = USART_DATE_BUFFER[i]  - '0';
-				  if(!(int_value >= 0 && int_value <= 9)){valid_input = 0; break;}
-			  }
-		  }
-		  if(!valid_input){//Invalid Input
-			  LCD_DrawString(20, 100, "Waiting For USART Response");
-			  LCD_DrawString(20, 130, "(yyyymmddhhmmss)");
-		  }
-		  else{//Update Date Time
+		  esp8266_get_time(); //Do The Get Time Procedures
+
+		  if (esp8266_get_time_flag == 9){// Reading Done
 			  char* t = USART_DATE_BUFFER;
 			  uint16_t dt[6];//yearmonth, day, hour, min, sec
 			  sscanf(t, "%04d%02d%02d%02d%02d%02d", &dt[0], &dt[1],&dt[2],&dt[3],&dt[4],&dt[5]);
@@ -785,8 +790,41 @@ static void MX_USART1_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART1_Init 2 */
-
+  __HAL_UART_ENABLE_IT(&huart1,UART_IT_RXNE);
   /* USER CODE END USART1_Init 2 */
+
+}
+
+/**
+  * @brief USART3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART3_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 115200;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+  __HAL_UART_ENABLE_IT(&huart3,UART_IT_RXNE);
+  /* USER CODE END USART3_Init 2 */
 
 }
 
@@ -818,6 +856,9 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
+
   /*Configure GPIO pins : PE2 DHT11_Pin PE0 PE1 */
   GPIO_InitStruct.Pin = GPIO_PIN_2|DHT11_Pin|GPIO_PIN_0|GPIO_PIN_1;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -843,8 +884,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(K2_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PB0 PB1 PB5 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_5;
+  /*Configure GPIO pins : PB0 PB1 PB5 PB8 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_5|GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
@@ -856,6 +897,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PB9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);

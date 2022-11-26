@@ -45,7 +45,7 @@ extern "C" {
  * This function is declared here only. You have to write your custom implementation somewhere
  * \param character Character to output
  */
-extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart3;
 void _putchar(char character);
 
 
