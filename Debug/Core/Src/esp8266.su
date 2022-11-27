@@ -8,8 +8,10 @@
 ../Core/Src/esp8266.c:86:6:esp8266_cmd_send_request	8	static
 ../Core/Src/esp8266.c:94:6:esp8266_cmd_fill_time_request	8	static
 ../Core/Src/esp8266.c:102:6:esp8266_cmd_fill_water_request	8	static
-../Core/Src/esp8266.c:110:6:esp8266_cmd_fill_exercise_request	8	static
-../Core/Src/esp8266.c:118:6:esp8266_get_time_buffer	8	static
-../Core/Src/esp8266.c:132:6:esp8266_get_time	8	static
-../Core/Src/esp8266.c:169:6:esp8266_update_water	8	static
-../Core/Src/esp8266.c:200:6:esp8266_update_exercise	8	static
+../Core/Src/esp8266.c:109:6:esp8266_cmd_fill_exercise_request	8	static
+../Core/Src/esp8266.c:117:6:esp8266_get_time_buffer	8	static
+../Core/Src/esp8266.c:131:6:esp8266_water_done	8	static
+../Core/Src/esp8266.c:138:6:esp8266_exercise_done	8	static
+../Core/Src/esp8266.c:145:6:esp8266_get_time	8	static
+../Core/Src/esp8266.c:182:6:esp8266_update_water	8	static
+../Core/Src/esp8266.c:216:6:esp8266_update_exercise	8	static

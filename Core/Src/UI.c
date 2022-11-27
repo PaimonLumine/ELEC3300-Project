@@ -77,12 +77,19 @@ void UI_WATER_WIFI_HANDLE(uint8_t time_delay){
 	extern uint8_t USART_WATER_FLAG;
 	extern uint8_t USART_GET_TIME_FLAG;
 	extern uint8_t esp8266_step_flag;
+	extern uint8_t USART_EXERCISE_FLAG;
 	for(i=0; i< time_delay; ++i){//Don't Waste Time
-	  if(USART_WATER_FLAG && !USART_GET_TIME_FLAG){
-		  if(USART_WATER_FLAG==1) {esp8266_step_flag = 0;USART_WATER_FLAG=2;} //Reset Step Flag
-		  esp8266_update_water();
-		  if (esp8266_step_flag == 8) USART_WATER_FLAG = 0;//Done
-	  }
+		  //Upload Exercise Data
+		  if(USART_EXERCISE_FLAG && !USART_GET_TIME_FLAG){
+			  if(USART_EXERCISE_FLAG==1) {esp8266_step_flag = 0; USART_EXERCISE_FLAG=2;} //Reset Step Flag
+			  esp8266_update_exercise();
+		  }
+
+		  //Upload drink water data
+		  if(USART_WATER_FLAG && !USART_GET_TIME_FLAG && !USART_EXERCISE_FLAG){
+			  if(USART_WATER_FLAG==1) {esp8266_step_flag = 0;USART_WATER_FLAG=2;} //Reset Step Flag
+			  esp8266_update_water();
+		  }
 	  HAL_Delay(1);
 	}
 }

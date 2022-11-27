@@ -102,7 +102,6 @@ void esp8266_cmd_fill_time_request(){
 void esp8266_cmd_fill_water_request(){
 	if(!IsDataAvailable()) return;
 	if(!Wait_for("OK")) return;
-	//HAL_Delay(100);
 	printf("GET /water?set=1 HTTP/1.1\r\nHost: marsohk.pythonanywhere.com\r\n\r\n");
 	++esp8266_step_flag;
 }
@@ -110,8 +109,8 @@ void esp8266_cmd_fill_water_request(){
 void esp8266_cmd_fill_exercise_request(){
 	if(!IsDataAvailable()) return;
 	if(!Wait_for("OK")) return;
-	//HAL_Delay(100);
-	printf("GET /exercise?time=%d HTTP/1.1\r\nHost: marsohk.pythonanywhere.com\r\n\r\n", RTC_raw());
+	extern uint32_t exertime_fixed;
+	printf("GET /exercise?time=%d HTTP/1.1\r\nHost: marsohk.pythonanywhere.com\r\n\r\n", exertime_fixed);
 	++esp8266_step_flag;
 }
 
@@ -127,6 +126,20 @@ void esp8266_get_time_buffer(){
 	Get_after("DATA:",15, USART_DATE_BUFFER);
 
     ++esp8266_step_flag;//Done
+}
+
+void esp8266_water_done(){
+	if(!IsDataAvailable()) return;
+	if(!Wait_for("Drink")) return;
+	extern uint8_t USART_WATER_FLAG;
+	USART_WATER_FLAG = 0;
+}
+
+void esp8266_exercise_done(){
+	if(!IsDataAvailable()) return;
+	if(!Wait_for("Exercise")) return;
+	extern uint8_t USART_EXERCISE_FLAG;
+	USART_EXERCISE_FLAG = 0;
 }
 
 void esp8266_get_time(){
@@ -189,6 +202,9 @@ void esp8266_update_water(){
 		case 7://Fill Request
 			esp8266_cmd_fill_water_request();
 			break;
+		case 8://Done, Reset Flag
+			esp8266_water_done();
+			break;
 		case 0:
 			esp8266_step_flag = 1;
 			ESP8266_RESET();
@@ -219,6 +235,9 @@ void esp8266_update_exercise(){
 			break;
 		case 7://Fill Request
 			esp8266_cmd_fill_exercise_request();
+			break;
+		case 8://Done, Reset Flag
+			esp8266_exercise_done();
 			break;
 		case 0:
 			esp8266_step_flag = 1;
