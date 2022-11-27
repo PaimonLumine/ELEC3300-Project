@@ -110,7 +110,7 @@ uint32_t exertime = 0;//Time Set By User
 uint32_t exertimer = 0;//Target time of exercise alarm
 int sec = 0;
 
-const char* ssid = "WifiName";
+const char* ssid = "Wifi";
 const char* wifi_password = "Password";
 /*
  * Status Variables
@@ -119,7 +119,9 @@ const char* wifi_password = "Password";
  */
 const unsigned char * petStats = normal;
 uint8_t DHT11_SCHEDULE_FLAG = 1;
-uint8_t USART_READ_FLAG = 0;
+uint8_t USART_GET_TIME_FLAG = 0;
+uint8_t USART_WATER_FLAG = 0; //Upload drink water info
+uint8_t USART_EXERCISE_FLAG = 0;//Upload exercise info
 uint8_t ALARM_TIMES_UP_RENDER_FLAG = 0;
 uint8_t EXER_TIMER_SET_FLAG = 0;
 char USART_DATE_BUFFER[15];
@@ -179,8 +181,8 @@ int main(void)
 	HAL_ADC_PollForConversion(&hadc1, 1000);
 	uint32_t value = HAL_ADC_GetValue(&hadc1);
 	DEBUG_USART_Config();
-	extern uint8_t esp8266_get_time_flag;
-	esp8266_get_time_flag = 0;
+	extern uint8_t esp8266_step_flag;
+	esp8266_step_flag = 0;
 	Ringbuf_init();
 	RTC_Get();
 	get_TimeStamp(&real_time);
@@ -261,7 +263,7 @@ int main(void)
 	  do {
 		  //Home Buttons
 		  if(mode==0){
-			  if(Check_touchkey(&home_drink_water,&Coordinate)) {alarm_release(); mode_new = 1; break;}
+			  if(Check_touchkey(&home_drink_water,&Coordinate)) {alarm_release(); mode_new = 1; USART_WATER_FLAG = 1; break;}
 			  if(Check_touchkey(&home_dark_mode,&Coordinate)) {mode_new = 2; break;}
 			  if(value > 3000 && petStats != sleep1 && petStats != sleep2  && petStats != sleep_water){mode_new = 2; break;}
 			  if(value < 3000 && (petStats == sleep1 || petStats == sleep2  || petStats == sleep_water)){mode_new = 2; break;}
@@ -286,9 +288,13 @@ int main(void)
 			  if(Check_touchkey(&stats_home,&Coordinate)) {mode_new = 0; break;}
 		  }else if (mode==4){//Configuration
 			  if(Check_touchkey(&config_home,&Coordinate)) {mode_new = 0; break;}
-			  if(Check_touchkey(&config_set_time,&Coordinate)) {mode_new = 5; USART_READ_FLAG = 1; esp8266_get_time_flag = 0; break;}
+			  if(Check_touchkey(&config_set_time,&Coordinate)) {mode_new = 5; USART_GET_TIME_FLAG = 1; break;}
 		  }else if (mode==5){
-			  if(Check_touchkey(&time_set_back,&Coordinate)) {mode_new = 4; USART_READ_FLAG = 0; esp8266_get_time_flag = -1;break;}
+			  if(Check_touchkey(&time_set_back,&Coordinate)) {
+				  mode_new = 4;
+				  USART_GET_TIME_FLAG = 0;
+				  break;
+			  }
 		  }
 		  else if (mode==6){
 			  if (Check_touchkey(&stats_home, &Coordinate)) {
@@ -340,6 +346,7 @@ int main(void)
 				  Beep_start();
 				  pet_update = 1;
 				  mode_new = 0;
+				  USART_GET_TIME_FLAG = 0; //Prevent Get Time Flag causing Other ESP8266 functions get stuck
 			  }
 			  alarm_times_up();
 		  }
@@ -366,11 +373,11 @@ int main(void)
 
 
 	  //Read Buffer when flag on
-	  if(USART_READ_FLAG && mode==5){
-
+	  if(USART_GET_TIME_FLAG && mode==5){
+		  if(USART_GET_TIME_FLAG==1) {esp8266_step_flag = 0; USART_GET_TIME_FLAG = 2;}
 		  esp8266_get_time(); //Do The Get Time Procedures
 
-		  if (esp8266_get_time_flag == 9){// Reading Done
+		  if (esp8266_step_flag == 9){// Reading Done
 			  char* t = USART_DATE_BUFFER;
 			  uint16_t dt[6];//yearmonth, day, hour, min, sec
 			  sscanf(t, "%04d%02d%02d%02d%02d%02d", &dt[0], &dt[1],&dt[2],&dt[3],&dt[4],&dt[5]);
@@ -380,16 +387,28 @@ int main(void)
 			  if(RTC_Set(dt[0],dt[1],dt[2],dt[3],dt[4],dt[5])==0){
 
 				  //Update Flag And UI
-				  USART_READ_FLAG = 0;
+				  USART_GET_TIME_FLAG = 0;
 				  LCD_Clear(0, 100, 250,150);
 				  LCD_DrawString(30, 100, "Done...");
 				  alarm_update_last();
 				  alarm_update_next();
 	  	  	  }
 		  }
-
 	  }
 
+	  //Upload drink water data
+	  if(USART_WATER_FLAG && !USART_GET_TIME_FLAG){
+		  if(USART_WATER_FLAG==1) {esp8266_step_flag = 0;USART_WATER_FLAG=2;} //Reset Step Flag
+		  esp8266_update_water();
+		  if (esp8266_step_flag == 8) USART_WATER_FLAG = 0;//Done
+	  }
+
+	  //Upload Exercise Data
+	  if(USART_EXERCISE_FLAG && !USART_WATER_FLAG && !USART_GET_TIME_FLAG){
+		  if(USART_EXERCISE_FLAG==1) {esp8266_step_flag = 0; USART_EXERCISE_FLAG=2;} //Reset Step Flag
+		  esp8266_update_exercise();
+		  if (esp8266_step_flag == 8) USART_EXERCISE_FLAG = 0; //Done
+	  }
 	  //Render LCD If Enter New Mode
 	  Render(&mode_new, &render_done,petStats);
 

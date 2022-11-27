@@ -33,5 +33,6 @@ extern UART_HandleTypeDef huart3;
 
 void ESP8266_RESET(void);
 void esp8266_get_time();
-
+void esp8266_update_water();
+void esp8266_update_exercise();
 #endif
