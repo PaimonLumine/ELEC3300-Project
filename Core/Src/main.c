@@ -111,8 +111,8 @@ uint32_t exertime_fixed = 0;//Time Set By User (Fixed)
 uint32_t exertimer = 0;//Target time of exercise alarm
 int sec = 0;
 
-const char* ssid = "FamilySo";
-const char* wifi_password = "aa2904bb4123";
+const char* ssid = "WIFINAME";
+const char* wifi_password = "PASSWORD";
 /*
  * Status Variables
  * petStats -> Current Image Of Pet
