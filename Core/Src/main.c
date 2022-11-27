@@ -106,12 +106,13 @@ TimeStamp real_time = {0}; //read real time data by calling - get_TimeStamp(&rea
 uint32_t lastupdate_raw,  lastdrink_raw = 0;
 uint32_t next = 0; //Next drink schedule time
 int tilnext = 0; // time till next drink
-uint32_t exertime = 0;//Time Set By User
+uint32_t exertime = 0;//Time Set By User (Volatile)
+uint32_t exertime_fixed = 0;//Time Set By User (Fixed)
 uint32_t exertimer = 0;//Target time of exercise alarm
 int sec = 0;
 
-const char* ssid = "Wifi";
-const char* wifi_password = "Password";
+const char* ssid = "FamilySo";
+const char* wifi_password = "aa2904bb4123";
 /*
  * Status Variables
  * petStats -> Current Image Of Pet
@@ -236,7 +237,7 @@ int main(void)
 	  	  }
 	  get_TimeStamp(&real_time);
 		sec = real_time.rsec;
-	  if (petStats != sleep1 && petStats != sleep2 && mode==0 && next > RTC_raw()){
+	  if (petStats != sleep1 && petStats != sleep2 && mode==0 && next > RTC_raw() && !(exertimer <= RTC_raw() && EXER_TIMER_SET_FLAG)){
 		  if (DHT11_data.temp_int > 27){
 			  if (real_time.rsec % 2 == 0){
 				  petStats = hot1;
@@ -263,7 +264,11 @@ int main(void)
 	  do {
 		  //Home Buttons
 		  if(mode==0){
-			  if(Check_touchkey(&home_drink_water,&Coordinate)) {alarm_release(); mode_new = 1; USART_WATER_FLAG = 1; break;}
+			  if(Check_touchkey(&home_drink_water,&Coordinate)) {
+				  alarm_release(); mode_new = 1; USART_WATER_FLAG = 1;
+				  if(EXER_TIMER_SET_FLAG && exertimer<= RTC_raw()) EXER_TIMER_SET_FLAG = 0;
+				  break;
+			  }
 			  if(Check_touchkey(&home_dark_mode,&Coordinate)) {mode_new = 2; break;}
 			  if(value > 3000 && petStats != sleep1 && petStats != sleep2  && petStats != sleep_water){mode_new = 2; break;}
 			  if(value < 3000 && (petStats == sleep1 || petStats == sleep2  || petStats == sleep_water)){mode_new = 2; break;}
@@ -326,9 +331,12 @@ int main(void)
 			  					HAL_Delay(100);
 			  					break;
 			  				} else if (Check_touchkey(&set_set, &Coordinate)) {
-			  					exertimer = RTC_raw() + exertime;
-			  					EXER_TIMER_SET_FLAG = 1;
-			  					HAL_Delay(100);
+			  					if(exertime!=0){
+			  						exertime_fixed = exertime;
+									exertimer = RTC_raw() + exertime;
+									EXER_TIMER_SET_FLAG = 1;
+									mode_new = 0;
+			  					}
 			  					break;
 			  				}
 		  		  }
@@ -339,16 +347,23 @@ int main(void)
 	  //Reset Coordinates
 	  XPT2046_Reset_TouchPoint(&Coordinate);
 
-	  if(next<= RTC_raw()){ //Overriding Touchscreen Behaviour
-		  if(mode != 1) {
-			  if(!ALARM_TIMES_UP_RENDER_FLAG){
+	  if(next<= RTC_raw() || (exertimer<= RTC_raw() && EXER_TIMER_SET_FLAG)){ //Water/ Exercise Alarm
+		  if(mode != 1) { //Not Drinking Water
+			  if(!ALARM_TIMES_UP_RENDER_FLAG){ //Alarm Event that do only once
 				  Beep_set(63999, 1124, 562);//2 Hz
 				  Beep_start();
 				  pet_update = 1;
 				  mode_new = 0;
 				  USART_GET_TIME_FLAG = 0; //Prevent Get Time Flag causing Other ESP8266 functions get stuck
+				  if((exertimer<= RTC_raw() && EXER_TIMER_SET_FLAG)){
+					  USART_EXERCISE_FLAG = 1; //Start Sending Exercise Data
+				  }
 			  }
 			  alarm_times_up();
+		  }else{//In drinking Mode, Prevent Retriggering Alarm Just after drinking
+			  if((exertimer<= RTC_raw() && EXER_TIMER_SET_FLAG)){
+				  EXER_TIMER_SET_FLAG = 0;
+			  }
 		  }
 	  }
 
@@ -396,19 +411,19 @@ int main(void)
 		  }
 	  }
 
-	  //Upload drink water data
-	  if(USART_WATER_FLAG && !USART_GET_TIME_FLAG){
-		  if(USART_WATER_FLAG==1) {esp8266_step_flag = 0;USART_WATER_FLAG=2;} //Reset Step Flag
-		  esp8266_update_water();
-		  if (esp8266_step_flag == 8) USART_WATER_FLAG = 0;//Done
-	  }
-
 	  //Upload Exercise Data
-	  if(USART_EXERCISE_FLAG && !USART_WATER_FLAG && !USART_GET_TIME_FLAG){
+	  if(USART_EXERCISE_FLAG && !USART_GET_TIME_FLAG){
 		  if(USART_EXERCISE_FLAG==1) {esp8266_step_flag = 0; USART_EXERCISE_FLAG=2;} //Reset Step Flag
 		  esp8266_update_exercise();
-		  if (esp8266_step_flag == 8) USART_EXERCISE_FLAG = 0; //Done
 	  }
+
+	  //Upload drink water data
+	  if(USART_WATER_FLAG && !USART_GET_TIME_FLAG && !USART_EXERCISE_FLAG){
+		  if(USART_WATER_FLAG==1) {esp8266_step_flag = 0;USART_WATER_FLAG=2;} //Reset Step Flag
+		  esp8266_update_water();
+	  }
+
+
 	  //Render LCD If Enter New Mode
 	  Render(&mode_new, &render_done,petStats);
 
