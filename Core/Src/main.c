@@ -125,6 +125,7 @@ uint8_t USART_WATER_FLAG = 0; //Upload drink water info
 uint8_t USART_EXERCISE_FLAG = 0;//Upload exercise info
 uint8_t ALARM_TIMES_UP_RENDER_FLAG = 0;
 uint8_t EXER_TIMER_SET_FLAG = 0;
+uint8_t ADC_DARKMODE_TOGGLE = 0;
 char USART_DATE_BUFFER[15];
 /* USER CODE END 0 */
 
@@ -221,7 +222,9 @@ int main(void)
 	  XPT2046_Get_TouchedPoint(&Coordinate,
 	  			&strXPT2046_TouchPara);
 	  HAL_ADC_Start(&hadc1);
-	  value = HAL_ADC_GetValue(&hadc1);
+	  if (real_time.rsec % 5==0 && ADC_DARKMODE_TOGGLE){
+		  value = HAL_ADC_GetValue(&hadc1);
+	  }
 	  //!!Only For UI that is changing every moment, Just For Testing, Need Refactoring Later
 	  if(mode==0) {
 		  RTC_Get();
@@ -269,7 +272,7 @@ int main(void)
 				  if(EXER_TIMER_SET_FLAG && exertimer<= RTC_raw()) EXER_TIMER_SET_FLAG = 0;
 				  break;
 			  }
-			  if(Check_touchkey(&home_dark_mode,&Coordinate)) {mode_new = 2; break;}
+			  if(Check_touchkey(&home_dark_mode,&Coordinate) && !ADC_DARKMODE_TOGGLE) {mode_new = 2; break;}
 			  if(value > 3000 && petStats != sleep1 && petStats != sleep2  && petStats != sleep_water){mode_new = 2; break;}
 			  if(value < 3000 && (petStats == sleep1 || petStats == sleep2  || petStats == sleep_water)){mode_new = 2; break;}
 			  if(Check_touchkey(&home_pet,&Coordinate)) {pet_update = 1;	if (petStats != sleep1 && petStats != sleep2  && petStats != sleep_water) {petStats = happy1;}; break;}
@@ -294,6 +297,12 @@ int main(void)
 		  }else if (mode==4){//Configuration
 			  if(Check_touchkey(&config_home,&Coordinate)) {mode_new = 0; break;}
 			  if(Check_touchkey(&config_set_time,&Coordinate)) {mode_new = 5; USART_GET_TIME_FLAG = 1; break;}
+			  if(Check_touchkey(&config_adc,&Coordinate)) {
+				  mode_new = 0;
+				  if(!ADC_DARKMODE_TOGGLE) ADC_DARKMODE_TOGGLE = 1;
+				  else ADC_DARKMODE_TOGGLE = 0;
+				  break;
+			  }
 		  }else if (mode==5){
 			  if(Check_touchkey(&time_set_back,&Coordinate)) {
 				  mode_new = 4;
@@ -350,12 +359,14 @@ int main(void)
 	  if(next<= RTC_raw() || (exertimer<= RTC_raw() && EXER_TIMER_SET_FLAG)){ //Water/ Exercise Alarm
 		  if(mode != 1) { //Not Drinking Water
 			  if(!ALARM_TIMES_UP_RENDER_FLAG){ //Alarm Event that do only once
-				  Beep_set(63999, 1124, 562);//2 Hz
+				  Beep_set(63999, 563, 281);//2 Hz
 				  Beep_start();
 				  pet_update = 1;
 				  mode_new = 0;
 				  USART_GET_TIME_FLAG = 0; //Prevent Get Time Flag causing Other ESP8266 functions get stuck
 				  if((exertimer<= RTC_raw() && EXER_TIMER_SET_FLAG)){
+					  Beep_set(63999, 1125, 562);//1 Hz
+					  Beep_start();
 					  USART_EXERCISE_FLAG = 1; //Start Sending Exercise Data
 				  }
 			  }
@@ -609,7 +620,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 63999;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 1124;
+  htim1.Init.Period = 1125;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -633,7 +644,7 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 500;
+  sConfigOC.Pulse = 300;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
@@ -874,9 +885,9 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2|GPIO_PIN_0|GPIO_PIN_1, GPIO_PIN_RESET);
@@ -918,6 +929,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(K2_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PA0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
   /*Configure GPIO pins : PB0 PB1 PB5 PB8 */
   GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_5|GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -940,6 +957,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
   HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
