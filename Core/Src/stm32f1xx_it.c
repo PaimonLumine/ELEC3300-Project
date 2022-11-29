@@ -26,7 +26,7 @@
 #include "dht11.h"
 #include "xpt2046.h"
 #include "bsp_usart.h"
-
+#include "rtc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -188,8 +188,8 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-  extern uint16_t timeout_rb;
   /* USER CODE BEGIN SysTick_IRQn 0 */
+  extern uint16_t timeout_rb;
   if(timeout_rb >0)  timeout_rb--;
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
@@ -204,6 +204,26 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f1xx.s).                    */
 /******************************************************************************/
+
+/**
+  * @brief This function handles EXTI line0 interrupt.
+  */
+void EXTI0_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI0_IRQn 0 */
+	if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_0) != RESET)
+	{
+		extern uint32_t exertimer;
+		exertimer = RTC_raw() + 3;
+	__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_0);
+	HAL_GPIO_EXTI_Callback(GPIO_PIN_0);
+	}
+  /* USER CODE END EXTI0_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
+  /* USER CODE BEGIN EXTI0_IRQn 1 */
+
+  /* USER CODE END EXTI0_IRQn 1 */
+}
 
 /**
   * @brief This function handles EXTI line4 interrupt.
@@ -235,12 +255,6 @@ void TIM3_IRQHandler(void)
 	--timer_left;
 	if(timer_left==0 && start_counting==1){
 		/*Timer Ends, Handle the water drinking progress*/
-
-		//extern void LCD_DrawString	( uint16_t usC, uint16_t usP, const char * pStr);
-		//LCD_DrawString(5,5,"Hi");
-
-
-
 		/* End of Line */
 		HAL_TIM_Base_Stop(&htim3);
 		HAL_TIM_Base_Stop_IT(&htim3);
@@ -281,10 +295,11 @@ void USART3_IRQHandler(void)
   /* USER CODE BEGIN USART3_IRQn 0 */
 	extern void Uart_isr (UART_HandleTypeDef *huart);
 	Uart_isr (&huart3);
+	if(0){//Skip URQHANDler
   /* USER CODE END USART3_IRQn 0 */
-  //HAL_UART_IRQHandler(&huart3);
+  HAL_UART_IRQHandler(&huart3);
   /* USER CODE BEGIN USART3_IRQn 1 */
-
+	}
   /* USER CODE END USART3_IRQn 1 */
 }
 

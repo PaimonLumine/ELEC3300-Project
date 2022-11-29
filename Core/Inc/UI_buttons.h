@@ -16,6 +16,7 @@ const unsigned int home_stats[4] = {200,240,10,30};
 const unsigned int home_config[4]= {2,50, 2,50};
 const unsigned int stats_home[4] = {80,180,280,320};
 const unsigned int config_set_time[4]={30,150,40,65};
+const unsigned int config_adc[4]={30,150,90,115};
 const unsigned int config_home[4] = {10,50,280,330};
 const unsigned int time_set_back[4] = {10,50,280,330};
 const unsigned int home_set[4] = {40,80,220,280};

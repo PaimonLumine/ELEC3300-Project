@@ -111,8 +111,11 @@ void UI_Home_Display_Button() {
 	LCD_DrawString(40, 260, "Timer");
 	LCD_DrawString(140, 220, "Drink");
 	LCD_DrawString(140, 240, "water");
-	LCD_DrawString(200, 260, "Dark");
-	LCD_DrawString(200, 280, "mode");
+	extern uint8_t ADC_DARKMODE_TOGGLE;
+	if(!ADC_DARKMODE_TOGGLE){
+		LCD_DrawString(200, 260, "Dark");
+		LCD_DrawString(200, 280, "mode");
+	}
 }
 
 void UI_Home_Display_Date(uint16_t year, uint8_t month, uint8_t day) {
@@ -252,6 +255,9 @@ void UI_Set_Update() {
 void UI_Config(){
 	LCD_Clear(0, 0, 240, 320);
 	LCD_DrawString(40, 50, "- Sync Time (Wifi)");
+	extern uint8_t ADC_DARKMODE_TOGGLE;
+	if (ADC_DARKMODE_TOGGLE) LCD_DrawString(40, 100, "- (On) Auto Dark Mode");
+	else LCD_DrawString(40, 100, "- (Off) Auto Dark Mode");
 	LCD_DrawString(10, 280, "Back");
 }
 
