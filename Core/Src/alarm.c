@@ -15,14 +15,17 @@ void alarm_update_next(){
 	extern DHT11_datastruct DHT11_data;
 
 	uint32_t realtime_raw = RTC_raw();
-	uint8_t humid = DHT11_data.humid_int;
-	uint8_t temp = DHT11_data.temp_int;
+	double humid = DHT11_data.humid_int;
+	double temp = DHT11_data.temp_int;
 
-	next = 2400 * (1 + (humid / 100)); //humidity
+	double result1 = 5400 * (1 + (humid / 100));
+
+	//next = result1; //humidity
 	if (temp > 26) {
-		next = next / (1 + (temp - 26) / 10); //temperature
+		result1 = result1 / (1 + (temp - 26) / 10);
+		//next = result1; //temperature
 	}
-	next += realtime_raw;
+	next = realtime_raw + result1;
 }
 
 

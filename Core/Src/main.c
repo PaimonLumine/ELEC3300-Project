@@ -273,8 +273,8 @@ int main(void)
 				  break;
 			  }
 			  if(Check_touchkey(&home_dark_mode,&Coordinate) && !ADC_DARKMODE_TOGGLE) {mode_new = 2; break;}
-			  if(value > 3000 && petStats != sleep1 && petStats != sleep2  && petStats != sleep_water){mode_new = 2; break;}
-			  if(value < 3000 && (petStats == sleep1 || petStats == sleep2  || petStats == sleep_water)){mode_new = 2; break;}
+			  if(value > 1000 && (petStats != sleep1 && petStats != sleep2  && petStats != sleep_water) && ADC_DARKMODE_TOGGLE){mode_new = 2; break;}
+			  if(value < 1000 && (petStats == sleep1 || petStats == sleep2  || petStats == sleep_water) && ADC_DARKMODE_TOGGLE){mode_new = 2; break;}
 			  if(Check_touchkey(&home_pet,&Coordinate)) {pet_update = 1;	if (petStats != sleep1 && petStats != sleep2  && petStats != sleep_water) {petStats = happy1;}; break;}
 			  if(Check_touchkey(&home_stats,&Coordinate)) {mode_new = 3; break;}
 			  if(Check_touchkey(&home_config,&Coordinate)) {mode_new = 4; break;}
